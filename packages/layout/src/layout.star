@@ -1,0 +1,1 @@
+Layout = record(elements = list.type)
