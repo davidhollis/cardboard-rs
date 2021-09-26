@@ -1,3 +1,8 @@
+pub mod geometry;
+pub mod references;
+pub mod starlark_repr;
+pub mod style;
+
 #[macro_use]
 extern crate lazy_static;
 
@@ -7,10 +12,8 @@ extern crate anyhow;
 use starlark::eval::Evaluator;
 use starlark::environment::{ FrozenModule, Globals, Module };
 use starlark::syntax::{ AstModule, Dialect };
-use starlark::values::OwnedFrozenValue;
 
 const LAYOUT_SRC: &str = include_str!("layout.star");
-const LAYOUT_CONFIG_SYMBOL: &str = "#layout_config";
 
 lazy_static! {
     static ref LAYOUT_LIB: FrozenModule = {
@@ -25,13 +28,28 @@ lazy_static! {
     };
 }
 
-pub struct Layout<'l> {
-    pub name: &'l str,
-    layout_config: OwnedFrozenValue,
+pub struct Layout {
+    pub geometry: geometry::Geometry,
+    pub background: style::Fill,
+    pub elements: Vec<()>,
 }
 
-impl<'l> Layout<'l> {
-    pub fn from_string(layout_name: &'l str, layout_filename: &str, code: &str) -> anyhow::Result<Layout<'l>> {
+impl Layout {
+    pub fn from_starlark<'v>(val: starlark_repr::StarlarkContainer<'v>) -> anyhow::Result<Layout> {
+        val.validate_type("layout")?;
+
+        Ok(Layout {
+            geometry: geometry::Geometry::from_starlark(
+                val.extract_value("layout", "geometry")?
+            )?,
+            background: style::Fill::from_starlark(
+                val.extract_value("layout", "background")?
+            )?,
+            elements: vec![],
+        })
+    }
+
+    pub fn from_string(layout_filename: &str, code: &str) -> anyhow::Result<Layout> {
         // Execute `code` in a module with layout.star pre-imported
         let ast = AstModule::parse(layout_filename, code.to_string(), &Dialect::Extended)?;
         let globals = Globals::extended();
@@ -41,37 +59,11 @@ impl<'l> Layout<'l> {
         let mut eval = Evaluator::new(&module, &globals);
         let layout_config_value = eval.eval_module(ast)?;
 
-        // Extract the type attribute from the result
-        let (_, layout_config_type_attr) =
-            layout_config_value
-                .get_attr("type", eval.heap())
-                .expect("Malformed layout: No type attribute.");
-        let layout_config_type =
-            layout_config_type_attr
-                .unpack_str()
-                .expect("Malformed layout: Type attribute is not a string.");
-
-        // Verify that the type is "layout"
-        if layout_config_type == "layout" {
-            // Get a frozen version of the value by putting it into the module with a name that
-            // isn't a valid starlark identifier, freezing the module, then pulling it back out
-            // as an owned frozen value.
-            module.set(LAYOUT_CONFIG_SYMBOL, layout_config_value);
-            let frozen_module = module.freeze()?;
-            match frozen_module.get(LAYOUT_CONFIG_SYMBOL) {
-                Some(layout_config) => {
-                    Ok(Layout {
-                        name: layout_name,
-                        layout_config: layout_config,
-                    })
-                },
-                None => {
-                    Err(anyhow!("Failed to extract layout config from frozen module."))
-                }
-            }
-        } else {
-            Err(anyhow!("Malformed layout: Unexpected type '{}' for layout config. Should have been 'layout'.", layout_config_type))
-        }
+        Ok(
+            Layout::from_starlark(
+                starlark_repr::StarlarkContainer::new(layout_config_value, eval.heap())
+            )?
+        )
     }
 }
 
@@ -93,10 +85,10 @@ layout(
         height = 100,
         units = "px",
     ),
-    background = solid(color = ref(path = "blue")),
+    background = solid(color = named("blue")),
     elements = [],
 )
         "##;
-        Layout::from_string("test-layout", "test.layout", code).unwrap();
+        Layout::from_string("test.layout", code).unwrap();
     }
 }

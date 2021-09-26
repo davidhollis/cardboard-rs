@@ -43,11 +43,17 @@ def geometry(units, width, height, cut = uniform(0), safe = uniform(0)):
 # ------------
 # -- colors --
 # ------------
+def named(name):
+    return struct(
+        type = "color",
+        color_type = "named",
+        name = name,
+    )
 
 def solid(color):
     return struct(
         type = "fill",
-        filltype = "solid",
+        fill_type = "solid",
         color = color,
     )
 
