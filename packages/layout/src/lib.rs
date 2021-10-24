@@ -1,5 +1,7 @@
+pub mod element;
 pub mod geometry;
 pub mod references;
+pub mod shape;
 pub mod starlark_repr;
 pub mod style;
 
@@ -31,7 +33,7 @@ lazy_static! {
 pub struct Layout {
     pub geometry: geometry::Geometry,
     pub background: style::Fill,
-    pub elements: Vec<()>,
+    pub elements: Vec<Box<dyn element::Element>>,
 }
 
 impl Layout {
@@ -45,7 +47,10 @@ impl Layout {
             background: style::Fill::from_starlark(
                 val.extract_value("layout", "background")?
             )?,
-            elements: vec![],
+            elements:
+                val
+                    .extract_value("layout", "elements")?
+                    .collect(|v| element::ElementUtils::from_starlark(v))?,
         })
     }
 
@@ -86,7 +91,13 @@ layout(
         units = "px",
     ),
     background = solid(color = named("blue")),
-    elements = [],
+    elements = [
+        shape(
+            rectangle(40, 40, 20, 20),
+            stroke = stroke("dotted", color = named("red"), width = 3),
+            fill = solid(named("purple")),
+        )
+    ],
 )
         "##;
         Layout::from_string("test.layout", code).unwrap();

@@ -54,4 +54,13 @@ impl<'v> StarlarkContainer<'v> {
             .and_then(|i| u16::try_from(i).ok())
             .ok_or(anyhow!("Malformed {}: {} is not a u16.", type_name, field))
     }
+
+    pub fn collect<T>(self,
+        f: impl Fn(StarlarkContainer<'v>) -> anyhow::Result<T>
+    ) -> anyhow::Result<Vec<T>> {
+        let star_iter = self.0.iterate(self.1)?;
+        star_iter
+            .map( |star_val| f(StarlarkContainer(star_val, self.1)) )
+            .collect()
+    }
 }

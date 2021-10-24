@@ -28,8 +28,47 @@ impl Color {
     }
 }
 
+pub enum StrokeType {
+    Solid,
+    Dashed,
+    Dotted,
+    None,
+}
+
+impl StrokeType {
+    pub fn from_string(stroke_type_str: &str) -> StrokeType {
+        match stroke_type_str {
+            "solid"  => StrokeType::Solid,
+            "dashed" => StrokeType::Dashed,
+            "dotted" => StrokeType::Dotted,
+            _        => StrokeType::None,
+        }
+    }
+}
+
+pub struct Stroke {
+    pub stroke_type: StrokeType,
+    pub color: Color,
+    pub width: u16,
+}
+
+impl Stroke {
+    pub fn from_starlark<'v>(val: StarlarkContainer<'v>) -> anyhow::Result<Stroke> {
+        val.validate_type("stroke")?;
+
+        Ok(
+            Stroke {
+                stroke_type: StrokeType::from_string(val.extract_string("stroke", "type")?),
+                color: Color::from_starlark(val.extract_value("stroke", "color")?)?,
+                width: val.extract_u16("stroke", "width")?,
+            }
+        )
+    }
+}
+
 pub enum Fill {
     Solid(Color),
+    None,
 }
 
 impl Fill {
@@ -41,6 +80,7 @@ impl Fill {
             "solid" => Ok(Fill::Solid(
                 Color::from_starlark(val.extract_value("fill", "color")?)?
             )),
+            "none" => Ok(Fill::None),
             _ => Err(
                 anyhow!("Unknown fill type {}. Expected one of ['solid'].", fill_type)
             )
