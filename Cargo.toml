@@ -13,4 +13,5 @@ members = [
     'packages/content',
     'packages/layout',
     'packages/rendering',
+    'packages/rendering/demos/simple_rounded_rect',
 ]
