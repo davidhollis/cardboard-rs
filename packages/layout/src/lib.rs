@@ -33,7 +33,7 @@ lazy_static! {
 pub struct Layout {
     pub geometry: geometry::Geometry,
     pub background: style::Fill,
-    pub elements: Vec<Box<dyn element::Element>>,
+    pub elements: Vec<element::Element>,
 }
 
 impl Layout {
@@ -50,7 +50,7 @@ impl Layout {
             elements:
                 val
                     .extract_value("layout", "elements")?
-                    .collect(|v| element::ElementUtils::from_starlark(v))?,
+                    .collect(|v| element::Element::from_starlark(v))?,
         })
     }
 
