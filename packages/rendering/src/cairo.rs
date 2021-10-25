@@ -30,6 +30,18 @@ impl Renderer for CairoRenderer {
 
         let context = Context::new(&surface).coerce_result()?;
 
+        // draw the backgound
+        context.trace_shape(&Shape::Rectangle(Rectangle {
+            x: 0,
+            y: 0,
+            width: self.layout.geometry.width,
+            height: self.layout.geometry.height,
+            corner_radius: 0,
+        }))?;
+        context.setup_fill(&self.layout.background)?;
+        context.fill().coerce_result()?;
+
+        // draw the other elements
         for element in self.layout.elements.iter() {
             context.render_element(&element)?;
         }
