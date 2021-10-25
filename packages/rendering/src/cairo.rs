@@ -69,10 +69,10 @@ impl CairoContextExtn for Context {
             Element::Shape(shape, stroke, fill) => {
                 self.save().coerce_result()?;
                 self.trace_shape(shape)?;
-                self.setup_stroke(stroke)?;
-                self.stroke_preserve().coerce_result()?;
                 self.setup_fill(fill)?;
-                self.fill().coerce_result()?;
+                self.fill_preserve().coerce_result()?;
+                self.setup_stroke(stroke)?;
+                self.stroke().coerce_result()?;
                 self.restore().coerce_result()?;
             },
         }
