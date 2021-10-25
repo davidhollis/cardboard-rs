@@ -1,0 +1,12 @@
+[package]
+name = "rendering"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+layout = { path = '../layout' }
+content = { path = '../content' }
+anyhow = "^1"
+cairo-rs = { version = "0.14.9", features = ['png', 'pdf'] }
