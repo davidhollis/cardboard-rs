@@ -103,3 +103,12 @@ layout(
         Layout::from_string("test.layout", code).unwrap();
     }
 }
+
+pub mod prelude {
+    pub use crate::Layout;
+    pub use crate::element::*;
+    pub use crate::geometry::*;
+    pub use crate::references::*;
+    pub use crate::shape::*;
+    pub use crate::style::*;
+}
