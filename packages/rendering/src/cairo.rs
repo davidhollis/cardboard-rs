@@ -117,11 +117,12 @@ impl CairoContextExtn for Context {
                 self.set_line_width(0.0);
             }
             Stroke { stroke_type, color, width } => {
+                let float_width = f64::from(*width);
                 self.setup_color(color)?;
-                self.set_line_width(f64::from(*width));
+                self.set_line_width(float_width);
                 match stroke_type {
-                    StrokeType::Dashed => self.set_dash(&[20.0, 20.0], 0.0),
-                    StrokeType::Dotted => self.set_dash(&[2.0, 2.0], 0.0),
+                    StrokeType::Dashed => self.set_dash(&[30.0, 20.0], 0.0),
+                    StrokeType::Dotted => self.set_dash(&[float_width / 2.0, float_width / 2.0], 0.0),
                     _ => (),
                 }
             }
