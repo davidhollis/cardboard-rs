@@ -1,0 +1,19 @@
+[package]
+name = "cardboard"
+version = "0.1.0"
+edition = "2021"
+default-run = "cardboard"
+
+# Build targets
+
+[lib]
+name = "cardboard"
+path = "src/lib.rs"
+
+[[bin]]
+name = "cardboard"
+path = "bin/main.rs"
+
+[dependencies]
+miette = { version="5.9.0", features=["fancy"] }
+knuffel = "3.2.0"
