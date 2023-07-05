@@ -15,5 +15,8 @@ name = "cardboard"
 path = "bin/main.rs"
 
 [dependencies]
-miette = { version="5.9.0", features=["fancy"] }
+miette = { version = "5.9.0", features = ["fancy"] }
 knuffel = "3.2.0"
+handlebars = "4.3.7"
+serde = { version = "1.0.166", features = ["derive"] }
+syn = "2.0.21"
