@@ -1,18 +1,32 @@
-use std::str::FromStr;
+use std::{str::FromStr, sync::OnceLock};
+
+use handlebars::{Handlebars, Context};
+use miette::IntoDiagnostic;
+
+static HANDLEBARS: OnceLock<Handlebars> = OnceLock::new();
 
 #[derive(PartialEq, Eq, Debug)]
 pub enum TemplateAwareString {
     RawString(String),
-    RegisteredTemplate { id: String }
+    Template(String),
 }
 
 impl TemplateAwareString {
     pub fn new(contents: String) -> TemplateAwareString {
         if contents.contains("{{") {
-            let id = register_template(contents);
-            TemplateAwareString::RegisteredTemplate { id }
+            TemplateAwareString::Template(contents)
         } else {
             TemplateAwareString::RawString(contents)
+        }
+    }
+
+    pub fn render(&self, ctx: &Context) -> miette::Result<String> {
+        match self {
+            Self::RawString(s) => Ok(s.clone()),
+            Self::Template(tpl) => {
+                let hb = HANDLEBARS.get_or_init(init_handlebars);
+                Ok(hb.render_template_with_context(&tpl, ctx).into_diagnostic()?)
+            }
         }
     }
 }
@@ -25,7 +39,8 @@ impl FromStr for TemplateAwareString {
     }
 }
 
-fn register_template(_contents: String) -> String {
-    // TODO add a global handlebars instance
-    todo!()
+fn init_handlebars() -> Handlebars<'static> {
+    let mut hb = Handlebars::new();
+    hb.register_escape_fn(handlebars::no_escape);
+    hb
 }
