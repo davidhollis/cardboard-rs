@@ -22,8 +22,8 @@ mod tests {
     geometry {
         width 825
         height 1125
-        cut 37 37 37 37
-        safe 75 75 75 75
+        cut 37
+        safe 75
     }
     background {
         fill { type "gradient"; }
@@ -38,7 +38,7 @@ mod tests {
     }
     text "some text" {
         frame x=100 y=200 w=300 h=400
-        only-if "some other text" "in" "xxx" "yyy" "zzz"
+        only-if "some {{other}} text" "in" "xxx" "yyy" "zzz"
     }
     box x=50 y=50 w=100 h=100 {
         rectangle x=1 y=2 w=3 h=4
@@ -106,7 +106,7 @@ mod tests {
                         },
                         style: vec![
                             TextStyle::OnlyIf(OnlyIf {
-                                left: TemplateAwareString::new("some other text".to_string()),
+                                left: TemplateAwareString::new("some {{other}} text".to_string()),
                                 op: Some(OnlyIfOperator::In),
                                 right: vec![
                                     TemplateAwareString::new("xxx".to_string()),
