@@ -10,6 +10,16 @@ pub struct Card {
     handlebars_context: OnceLock<Context>,
 }
 
+impl Card {
+    pub fn new(id: String) -> Card {
+        Card { id, fields: HashMap::new(), handlebars_context: OnceLock::new() }
+    }
+
+    pub fn fields_mut(&mut self) -> &mut HashMap<String, String> {
+        &mut self.fields
+    }
+}
+
 impl<'a> TryFrom<&'a Card> for &'a Context {
     type Error = miette::Error;
 

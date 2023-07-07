@@ -36,7 +36,7 @@ fn draw_text(text: &Text, card: &Card, canvas: &mut Canvas) -> Result<(), miette
     let mut paint = Paint::new(Color4f::new(0.0f32, 0.0f32, 0.0f32, 1.0f32), None);
     paint.set_anti_alias(true);
     fixed_text_style.set_foreground_color(&paint);
-    fixed_text_style.set_font_size(10.0f32);
+    fixed_text_style.set_font_size(42.0f32); // 42px ~ 10pt ~ 10/72in @ 300 dpi
     let mut paragraph_style = ParagraphStyle::new();
     paragraph_style.set_text_style(&fixed_text_style);
     let mut default_font_collection = FontCollection::new();
