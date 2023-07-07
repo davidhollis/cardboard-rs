@@ -19,3 +19,15 @@ pub struct Background {
     #[knuffel(children)]
     pub style: Vec<PathStyle>,
 }
+
+impl Background {
+    pub fn to_rect(&self, frame_width: usize, frame_height: usize) -> Rectangle {
+        Rectangle {
+            x: 0,
+            y: 0,
+            w: frame_width,
+            h: frame_height,
+            style: self.style.clone(),
+        }
+    }
+}

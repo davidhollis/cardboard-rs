@@ -3,7 +3,7 @@ pub mod font;
 pub mod only_if;
 pub mod stroke;
 
-#[derive(knuffel::Decode, PartialEq, Eq, Debug)]
+#[derive(knuffel::Decode, PartialEq, Eq, Debug, Clone)]
 pub enum PathStyle {
     Stroke(stroke::Stroke),
     Fill(fill::Fill),

@@ -1,4 +1,5 @@
 pub mod model;
+pub mod printing;
 pub mod templates;
 
 // re-export model objects
