@@ -4,7 +4,7 @@ use miette::miette;
 
 use crate::layout::templates::TemplateAwareString;
 
-#[derive(knuffel::Decode, PartialEq, Eq, Debug)]
+#[derive(knuffel::Decode, PartialEq, Eq, Debug, Clone)]
 pub struct OnlyIf {
     #[knuffel(argument, str)]
     pub left: TemplateAwareString,
@@ -14,7 +14,7 @@ pub struct OnlyIf {
     pub right: Vec<TemplateAwareString>,
 }
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub enum OnlyIfOperator {
     Equal,
     NotEqual,
