@@ -1,8 +1,9 @@
 use std::str::FromStr;
 
+use handlebars::Context;
 use miette::miette;
 
-use crate::layout::templates::TemplateAwareString;
+use crate::layout::templates::{TemplateAwareString, TemplateError};
 
 #[derive(knuffel::Decode, PartialEq, Eq, Debug, Clone)]
 pub struct OnlyIf {
@@ -12,6 +13,33 @@ pub struct OnlyIf {
     pub op: Option<OnlyIfOperator>,
     #[knuffel(arguments, str)]
     pub right: Vec<TemplateAwareString>,
+}
+
+impl OnlyIf {
+    pub fn evaluate(&self, ctx: &Context) -> Result<bool, miette::Error> {
+        let left_val = self.left.render(ctx)?;
+        let right_vals: Vec<String> = self.right.iter().map(|tpl| tpl.render(ctx)).into_iter().collect::<Result<Vec<String>,TemplateError>>()?;
+
+        match self.op {
+            Some(OnlyIfOperator::Equal) => {
+                if let Some(right_val) = right_vals.first() {
+                    Ok(&left_val == right_val)
+                } else {
+                    Ok(false)
+                }
+            },
+            Some(OnlyIfOperator::NotEqual) => {
+                if let Some(right_val) = right_vals.first() {
+                    Ok(&left_val != right_val)
+                } else {
+                    Ok(false)
+                }
+            },
+            Some(OnlyIfOperator::In) => Ok(right_vals.contains(&left_val)),
+            Some(OnlyIfOperator::NotIn) => Ok(!right_vals.contains(&left_val)),
+            None => Ok(!left_val.is_empty()),
+        }
+    }
 }
 
 #[derive(PartialEq, Eq, Debug, Clone)]

@@ -14,7 +14,7 @@ pub struct Layout {
 
 #[cfg(test)]
 mod tests {
-    use crate::layout::{model::{geometry::{Insets, Geometry}, elements::{shapes::{Background, Rectangle}, Element, text::Text, Frame, containers::Box}, styles::{fill::Fill, PathStyle, only_if::{OnlyIf, OnlyIfOperator}, stroke::Stroke, TextStyle, font::Font}}, templates::TemplateAwareString};
+    use crate::layout::{model::{geometry::{Insets, Geometry}, elements::{shapes::{Background, Rectangle}, Element, text::Text, Frame, containers::Box}, styles::{solid::Solid, PathStyle, only_if::{OnlyIf, OnlyIfOperator}, stroke::{Stroke, DashPattern}, TextStyle, font::Font, color::{ColorRef, Color}}}, templates::TemplateAwareString};
 
     use super::Layout;
 
@@ -26,22 +26,24 @@ mod tests {
         safe 75
     }
     background {
-        fill { type "gradient"; }
+        solid "white"
     }
     rectangle x=1 y=2 w=3 h=4
     rectangle x=5 y=6 w=7 h=8 {
         only-if "some text"
-        stroke 3
-        fill {
-            type "solid"
-        }
+        stroke 3 "black"
+        solid "rgba(110, 120, 130, 255)"
     }
     text "some text" {
         frame x=100 y=200 w=300 h=400
         only-if "some {{other}} text" "in" "xxx" "yyy" "zzz"
     }
     box x=50 y=50 w=100 h=100 {
-        rectangle x=1 y=2 w=3 h=4
+        rectangle x=1 y=2 w=3 h=4 {
+            stroke 2 "black" {
+                pattern "---  .. "
+            }
+        }
         text "some text" {
             frame x=10 y=20 w=30 h=40
             font "Fira Code"
@@ -65,8 +67,8 @@ mod tests {
                 elements: vec![
                     Element::Background(Background {
                         style: vec![
-                            PathStyle::Fill(Fill {
-                                r#type: "gradient".to_string(),
+                            PathStyle::Solid(Solid {
+                                color: ColorRef::Named(TemplateAwareString::new("white".to_string())),
                             }),
                         ],
                     }),
@@ -90,9 +92,11 @@ mod tests {
                             }),
                             PathStyle::Stroke(Stroke {
                                 width: 3,
+                                color: ColorRef::Named(TemplateAwareString::new("black".to_string())),
+                                pattern: DashPattern::Solid,
                             }),
-                            PathStyle::Fill(Fill {
-                                r#type: "solid".to_string(),
+                            PathStyle::Solid(Solid {
+                                color: ColorRef::Static(Color::RGBA(110, 120, 130, 255)),
                             }),
                         ],
                     }),
@@ -127,7 +131,15 @@ mod tests {
                                 y: 2,
                                 w: 3,
                                 h: 4,
-                                style: vec![],
+                                style: vec![
+                                    PathStyle::Stroke(
+                                        Stroke {
+                                            width: 2,
+                                            color: ColorRef::Named(TemplateAwareString::new("black".to_string())),
+                                            pattern: DashPattern::Dashed(vec![9, 2, 2, 1]),
+                                        }
+                                    )
+                                ],
                             }),
                             Element::Text(Text {
                                 contents: TemplateAwareString::new("some text".to_string()),

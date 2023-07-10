@@ -14,9 +14,9 @@ pub use model::{
     },
     styles::{
         PathStyle, TextStyle,
-        fill::Fill,
         font::Font,
         only_if::{ OnlyIf, OnlyIfOperator },
+        solid::Solid,
         stroke::Stroke,
     },
 };

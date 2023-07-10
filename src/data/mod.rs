@@ -4,6 +4,8 @@ use handlebars::Context;
 use miette::IntoDiagnostic;
 use serde::Serialize;
 
+use crate::layout::model::styles::color::Color;
+
 pub struct Card {
     pub id: String,
     fields: HashMap<String, String>,
@@ -17,6 +19,25 @@ impl Card {
 
     pub fn fields_mut(&mut self) -> &mut HashMap<String, String> {
         &mut self.fields
+    }
+
+    pub fn color_named(&self, color_name: &str) -> Option<Color> {
+        match color_name {
+            // TODO: find a better place to store builtin colors
+            "transparent" => Some(Color::RGBA(0x00, 0x00, 0x00, 0x00)),
+            "black" => Some(Color::RGBA(0x00, 0x00, 0x00, 0xff)),
+            "dark gray" => Some(Color::RGBA(0x44, 0x44, 0x44, 0xff)),
+            "gray" => Some(Color::RGBA(0x88, 0x88, 0x88, 0xff)),
+            "light gray" => Some(Color::RGBA(0xcc, 0xcc, 0xcc, 0xff)),
+            "white" => Some(Color::RGBA(0xff, 0xff, 0xff, 0xff)),
+            "red" => Some(Color::RGBA(0xff, 0x00, 0x00, 0xff)),
+            "green" => Some(Color::RGBA(0x00, 0xff, 0x00, 0xff)),
+            "blue" => Some(Color::RGBA(0x00, 0x00, 0xff, 0xff)),
+            "yellow" => Some(Color::RGBA(0xff, 0xff, 0x00, 0xff)),
+            "cyan" => Some(Color::RGBA(0x00, 0xff, 0xff, 0xff)),
+            "magenta" => Some(Color::RGBA(0xff, 0x00, 0xff, 0xff)),
+            _ => None, // TODO: actually try to look this up in project state
+        }
     }
 }
 
