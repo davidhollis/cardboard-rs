@@ -100,3 +100,45 @@ pub enum StrokeError {
         offset: SourceOffset,
     },
 }
+
+#[cfg(test)]
+mod tests {
+    use super::DashPattern;
+
+    #[test]
+    fn it_recognizes_simple_dotted_pattern() -> miette::Result<()> {
+        let test_pattern: DashPattern = "dotted".parse()?;
+
+        assert_eq!(test_pattern, DashPattern::Dashed(vec![1, 1]));
+
+        Ok(())
+    }
+
+    #[test]
+    fn it_recognizes_simple_dashed_pattern() -> miette::Result<()> {
+        let test_pattern: DashPattern = "dashed".parse()?;
+
+        assert_eq!(test_pattern, DashPattern::Dashed(vec![3, 1]));
+
+        Ok(())
+    }
+
+    #[test]
+    fn it_parses_a_complex_pattern() -> miette::Result<()> {
+        let test_pattern: DashPattern = "---   .-.  ... -. .    ".parse()?;
+
+        assert_eq!(test_pattern, DashPattern::Dashed(
+            //   ---  [ ][ ][ ]  .-.  [ ][ ]  ...  [ ]  -.  [ ]  .  [ ][ ][ ][ ]
+            vec![  9,         3,   5,      2,   3,   1,  4,   1, 1,            4]
+        ));
+
+        Ok(())
+    }
+
+    #[test]
+    fn it_complains_about_invalid_input() -> () {
+        let test_pattern = "not a dash pattern".parse::<DashPattern>();
+
+        assert!(test_pattern.is_err())
+    }
+}
