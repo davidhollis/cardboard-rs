@@ -22,3 +22,5 @@ serde = { version = "1.0.166", features = ["derive"] }
 syn = "2.0.21"
 skia-safe = { version = "0.63.0", features = ["textlayout"] }
 thiserror = "1.0.43"
+lazy_static = "1.4.0"
+regex = "1.9.1"

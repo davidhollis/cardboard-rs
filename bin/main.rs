@@ -12,7 +12,15 @@ geometry {
     cut 37
     safe 75
 }
-rectangle x=100 y=100 w=625 h=925
+background {
+    solid "white"
+}
+rectangle x=100 y=100 w=625 h=925 {
+    stroke 5 "black" {
+        pattern "dotted"
+    }
+    solid "rgb(128, 255, 128)"
+}
 text "Hello from {{name}}
 
 version {{version}}" {

@@ -102,6 +102,8 @@ impl Renderer for SkiaRenderer {
 pub enum SkiaRendererError {
     #[error("encountered an error while rendering a card: {0}")]
     GraphicsError(String),
+    #[error("color name '{0}' not found")]
+    InvalidColor(String),
 }
 
 pub struct SkiaCard {

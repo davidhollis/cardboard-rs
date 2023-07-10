@@ -1,12 +1,13 @@
-pub mod fill;
+pub mod color;
 pub mod font;
 pub mod only_if;
+pub mod solid;
 pub mod stroke;
 
 #[derive(knuffel::Decode, PartialEq, Eq, Debug, Clone)]
 pub enum PathStyle {
     Stroke(stroke::Stroke),
-    Fill(fill::Fill),
+    Solid(solid::Solid),
     OnlyIf(only_if::OnlyIf),
 }
 
