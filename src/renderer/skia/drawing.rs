@@ -1,6 +1,6 @@
-use skia_safe::{Canvas, Paint, Color4f, IRect, PaintStyle, textlayout::{TextStyle, FontCollection, ParagraphBuilder, ParagraphStyle}, FontMgr, Rect, ClipOp, Color as SkiaColor, PathEffect};
+use skia_safe::{Canvas, Paint, Color4f, IRect, PaintStyle, textlayout::{TextStyle as SkTextStyle, FontCollection, ParagraphBuilder, ParagraphStyle}, FontMgr, Rect, ClipOp, Color as SkiaColor, PathEffect, FontStyle, font_style::Slant};
 
-use crate::{layout::{Element, Rectangle, Text, Box, model::styles::{color::{ColorRef, Color as CardboardColor}, stroke::DashPattern}, PathStyle, Stroke, Solid}, data::Card};
+use crate::{layout::{Element, Rectangle, Text, Box, model::styles::{color::{ColorRef, Color as CardboardColor}, stroke::DashPattern, text::{Foreground, Background as TextBackground}, font::{Weight, Width}}, PathStyle, Stroke, Solid, TextStyle, Font}, data::Card};
 
 use super::SkiaRendererError;
 
@@ -32,31 +32,25 @@ fn draw_rect(rect: &Rectangle, card: &Card, canvas: &mut Canvas) -> Result<(), m
 }
 
 fn draw_text(text: &Text, card: &Card, canvas: &mut Canvas) -> Result<(), miette::Error> {
-    // TODO: this just draw the text in black at size 10.
-    //       We should aggregate styles and actually manage fonts
     // TODO: eventually support embedded markup to control styles
     // TODO: eventually support embedded icons
 
-    // Set up default styles
-    let mut fixed_text_style = TextStyle::new();
-    let mut paint = Paint::new(Color4f::new(0.0f32, 0.0f32, 0.0f32, 1.0f32), None);
-    paint.set_anti_alias(true);
-    fixed_text_style.set_foreground_color(&paint);
-    fixed_text_style.set_font_size(42.0f32); // 42px ~ 10pt ~ 10/72in @ 300 dpi
-    let mut paragraph_style = ParagraphStyle::new();
-    paragraph_style.set_text_style(&fixed_text_style);
-    let mut default_font_collection = FontCollection::new();
-    default_font_collection.set_default_font_manager(FontMgr::new(), None);
-    let mut paragraph_builder = ParagraphBuilder::new(&paragraph_style, default_font_collection);
+    if let Some(text_style) = compute_text_styles(&text.style, card)? {
+        let mut paragraph_style = ParagraphStyle::new();
+        paragraph_style.set_text_style(&text_style);
+        let mut font_collection = FontCollection::new();
+        font_collection.set_default_font_manager(FontMgr::new(), None);
+        let mut paragraph_builder = ParagraphBuilder::new(&paragraph_style, font_collection);
 
-    // Resolve the template and add the text to the builder
-    let filled_template = text.contents.render(card.try_into()?)?;
-    paragraph_builder.add_text(filled_template.as_str());
+        // Resolve the template and add the text to the builder
+        let filled_template = text.contents.render(card.try_into()?)?;
+        paragraph_builder.add_text(filled_template.as_str());
 
-    // Lay out and draw the paragraph
-    let mut paragraph = paragraph_builder.build();
-    paragraph.layout(text.frame.w as f32);
-    paragraph.paint(canvas, (text.frame.x as f32, text.frame.y as f32));
+        // Lay out and draw the paragraph
+        let mut paragraph = paragraph_builder.build();
+        paragraph.layout(text.frame.w as f32);
+        paragraph.paint(canvas, (text.frame.x as f32, text.frame.y as f32));
+    }
 
     Ok(())
 }
@@ -136,5 +130,71 @@ fn compute_path_styles(styles: &Vec<PathStyle>, card: &Card) -> Result<(Option<P
         ))
     } else {
         Ok((None, None))
+    }
+}
+
+fn compute_text_styles(styles: &Vec<TextStyle>, card: &Card) -> Result<Option<SkTextStyle>, miette::Error> {
+    let mut text_style = SkTextStyle::new();
+    let mut should_render = true;
+    let card_ctx = TryInto::<&handlebars::Context>::try_into(card)?;
+
+    for style in styles {
+        match style {
+            TextStyle::Font(Font {family, weight, width, style}) => {
+                text_style.set_font_families(&[family]);
+                text_style.set_font_style(FontStyle::new(
+                    match weight {
+                        Weight::Thin => skia_safe::font_style::Weight::THIN,
+                        Weight::ExtraLight => skia_safe::font_style::Weight::EXTRA_LIGHT,
+                        Weight::Light => skia_safe::font_style::Weight::LIGHT,
+                        Weight::Normal => skia_safe::font_style::Weight::NORMAL,
+                        Weight::Medium => skia_safe::font_style::Weight::MEDIUM,
+                        Weight::SemiBold => skia_safe::font_style::Weight::SEMI_BOLD,
+                        Weight::Bold => skia_safe::font_style::Weight::BOLD,
+                        Weight::ExtraBold => skia_safe::font_style::Weight::EXTRA_BOLD,
+                        Weight::Black => skia_safe::font_style::Weight::BLACK,
+                        Weight::ExtraBlack => skia_safe::font_style::Weight::EXTRA_BLACK,
+                    },
+                    match width {
+                        Width::UltraCondensed => skia_safe::font_style::Width::ULTRA_CONDENSED,
+                        Width::Condensed => skia_safe::font_style::Width::CONDENSED,
+                        Width::SemiCondensed => skia_safe::font_style::Width::SEMI_CONDENSED,
+                        Width::Normal => skia_safe::font_style::Width::NORMAL,
+                        Width::SemiWide => skia_safe::font_style::Width::SEMI_EXPANDED,
+                        Width::Wide => skia_safe::font_style::Width::EXPANDED,
+                        Width::UltraWide => skia_safe::font_style::Width::ULTRA_EXPANDED,
+                    },
+                    if style == "italic" { Slant::Italic } else { Slant::Upright }
+                ));
+            },
+            TextStyle::Size(sz) => {
+                text_style.set_font_size(sz.pixel_size());
+            },
+            TextStyle::Foreground(Foreground {color}) => {
+                let mut foreground_paint = Paint::new(
+                    Into::<Color4f>::into(resolve_color_ref(card, color)?),
+                    None
+                );
+                foreground_paint.set_anti_alias(true);
+                text_style.set_foreground_color(&foreground_paint);
+            },
+            TextStyle::Background(TextBackground {color}) => {
+                let mut background_paint = Paint::new(
+                    Into::<Color4f>::into(resolve_color_ref(card, color)?),
+                    None
+                );
+                background_paint.set_anti_alias(true);
+                text_style.set_foreground_color(&background_paint);
+            },
+            TextStyle::OnlyIf(condition) => {
+                should_render = should_render && condition.evaluate(card_ctx)?;
+            }
+        }
+    }
+
+    if should_render {
+        Ok(Some(text_style))
+    } else {
+        Ok(None)
     }
 }

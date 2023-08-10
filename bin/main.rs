@@ -25,6 +25,9 @@ text "Hello from {{name}}
 
 version {{version}}" {
     frame x=150 y=200 w=525 h=725
+    font family="Optima" weight="bold"
+    size 10 "pt"
+    foreground "rgb(64, 64, 192)"
 }
 "###;
 

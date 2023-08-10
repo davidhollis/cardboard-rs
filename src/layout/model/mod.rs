@@ -14,7 +14,7 @@ pub struct Layout {
 
 #[cfg(test)]
 mod tests {
-    use crate::layout::{model::{geometry::{Insets, Geometry}, elements::{shapes::{Background, Rectangle}, Element, text::Text, Frame, containers::Box}, styles::{solid::Solid, PathStyle, only_if::{OnlyIf, OnlyIfOperator}, stroke::{Stroke, DashPattern}, TextStyle, font::Font, color::{ColorRef, Color}}}, templates::TemplateAwareString};
+    use crate::layout::{model::{geometry::{Insets, Geometry}, elements::{shapes::{Background, Rectangle}, Element, text::Text, Frame, containers::Box}, styles::{solid::Solid, PathStyle, only_if::{OnlyIf, OnlyIfOperator}, stroke::{Stroke, DashPattern}, TextStyle, font::{Font, Width, Weight}, color::{ColorRef, Color}}}, templates::TemplateAwareString};
 
     use super::Layout;
 
@@ -46,7 +46,7 @@ mod tests {
         }
         text "some text" {
             frame x=10 y=20 w=30 h=40
-            font "Fira Code"
+            font family="Fira Code"
         }
     }
     "#;
@@ -151,7 +151,10 @@ mod tests {
                                 },
                                 style: vec![
                                     TextStyle::Font(Font {
-                                        name: "Fira Code".to_string(),
+                                        family: "Fira Code".to_string(),
+                                        width: Width::Normal,
+                                        weight: Weight::Normal,
+                                        style: "".to_string(),
                                     }),
                                 ],
                             }),
