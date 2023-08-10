@@ -54,3 +54,31 @@ impl FromStr for Units {
         }
     }
 }
+
+#[derive(knuffel::Decode, PartialEq, Eq, Debug)]
+pub struct Align {
+    #[knuffel(argument, str)]
+    pub alignment: Alignment,
+}
+
+#[derive(PartialEq, Eq, Debug, Clone)]
+pub enum Alignment {
+    Left,
+    Center,
+    Right,
+    Justify,
+}
+
+impl FromStr for Alignment {
+    type Err = Infallible;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_ascii_lowercase().replace(" ", "").replace("-", "").as_str() {
+            "left" => Ok(Alignment::Left),
+            "center" => Ok(Alignment::Center),
+            "right" => Ok(Alignment::Right),
+            "justify" => Ok(Alignment::Justify),
+            _ => Ok(Alignment::Left),
+        }
+    }
+}

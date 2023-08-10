@@ -1,6 +1,6 @@
 use skia_safe::{Canvas, Paint, Color4f, IRect, PaintStyle, textlayout::{TextStyle as SkTextStyle, FontCollection, ParagraphBuilder, ParagraphStyle}, FontMgr, Rect, ClipOp, Color as SkiaColor, PathEffect, FontStyle, font_style::Slant};
 
-use crate::{layout::{Element, Rectangle, Text, Box, model::styles::{color::{ColorRef, Color as CardboardColor}, stroke::DashPattern, text::{Foreground, Background as TextBackground}, font::{Weight, Width}}, PathStyle, Stroke, Solid, TextStyle, Font}, data::Card};
+use crate::{layout::{Element, Rectangle, Text, Box, model::styles::{color::{ColorRef, Color as CardboardColor}, stroke::DashPattern, text::{Foreground, Background as TextBackground, Align, Alignment}, font::{Weight, Width}}, PathStyle, Stroke, Solid, TextStyle, Font}, data::Card};
 
 use super::SkiaRendererError;
 
@@ -35,9 +35,7 @@ fn draw_text(text: &Text, card: &Card, canvas: &mut Canvas) -> Result<(), miette
     // TODO: eventually support embedded markup to control styles
     // TODO: eventually support embedded icons
 
-    if let Some(text_style) = compute_text_styles(&text.style, card)? {
-        let mut paragraph_style = ParagraphStyle::new();
-        paragraph_style.set_text_style(&text_style);
+    if let Some(paragraph_style) = compute_text_styles(&text.style, card)? {
         let mut font_collection = FontCollection::new();
         font_collection.set_default_font_manager(FontMgr::new(), None);
         let mut paragraph_builder = ParagraphBuilder::new(&paragraph_style, font_collection);
@@ -133,11 +131,21 @@ fn compute_path_styles(styles: &Vec<PathStyle>, card: &Card) -> Result<(Option<P
     }
 }
 
-fn compute_text_styles(styles: &Vec<TextStyle>, card: &Card) -> Result<Option<SkTextStyle>, miette::Error> {
+fn compute_text_styles(styles: &Vec<TextStyle>, card: &Card) -> Result<Option<ParagraphStyle>, miette::Error> {
     let mut text_style = SkTextStyle::new();
+    let mut text_align = skia_safe::textlayout::TextAlign::Left;
     let mut should_render = true;
     let card_ctx = TryInto::<&handlebars::Context>::try_into(card)?;
 
+    // Default styles
+    let mut default_foreground_paint = Paint::new(
+        Into::<Color4f>::into(SkiaColor::BLACK),
+        None
+    );
+    default_foreground_paint.set_anti_alias(true);
+    text_style.set_foreground_color(&default_foreground_paint);
+
+    // User-defined styles
     for style in styles {
         match style {
             TextStyle::Font(Font {family, weight, width, style}) => {
@@ -170,6 +178,14 @@ fn compute_text_styles(styles: &Vec<TextStyle>, card: &Card) -> Result<Option<Sk
             TextStyle::Size(sz) => {
                 text_style.set_font_size(sz.pixel_size());
             },
+            TextStyle::Align(Align {alignment}) => {
+                text_align = match alignment {
+                    Alignment::Left => skia_safe::textlayout::TextAlign::Left,
+                    Alignment::Center => skia_safe::textlayout::TextAlign::Center,
+                    Alignment::Right => skia_safe::textlayout::TextAlign::Right,
+                    Alignment::Justify => skia_safe::textlayout::TextAlign::Justify,
+                }
+            },
             TextStyle::Foreground(Foreground {color}) => {
                 let mut foreground_paint = Paint::new(
                     Into::<Color4f>::into(resolve_color_ref(card, color)?),
@@ -184,7 +200,7 @@ fn compute_text_styles(styles: &Vec<TextStyle>, card: &Card) -> Result<Option<Sk
                     None
                 );
                 background_paint.set_anti_alias(true);
-                text_style.set_foreground_color(&background_paint);
+                text_style.set_background_color(&background_paint);
             },
             TextStyle::OnlyIf(condition) => {
                 should_render = should_render && condition.evaluate(card_ctx)?;
@@ -193,7 +209,10 @@ fn compute_text_styles(styles: &Vec<TextStyle>, card: &Card) -> Result<Option<Sk
     }
 
     if should_render {
-        Ok(Some(text_style))
+        let mut paragraph_style = ParagraphStyle::new();
+        paragraph_style.set_text_style(&text_style);
+        paragraph_style.set_text_align(text_align);
+        Ok(Some(paragraph_style))
     } else {
         Ok(None)
     }

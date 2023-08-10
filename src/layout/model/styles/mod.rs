@@ -16,6 +16,7 @@ pub enum PathStyle {
 pub enum TextStyle {
     Font(font::Font),
     Size(text::Size),
+    Align(text::Align),
     Foreground(text::Foreground),
     Background(text::Background),
     OnlyIf(only_if::OnlyIf),
