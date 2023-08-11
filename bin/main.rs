@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use cardboard::{data::Card, layout::Layout, renderer::{SkiaRenderer, Renderer}};
+use cardboard::{data::{card::Card, project::Project}, layout::Layout, renderer::{SkiaRenderer, Renderer}};
 
 const NAME: &str = env!("CARGO_PKG_NAME");
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -38,19 +38,24 @@ text "version {{version}}" {
 "###;
 
 fn main() -> miette::Result<()> {
+    let mut test_project = Project::new();
+
     println!("Loading test layout...");
     let layout: Layout = knuffel::parse("test.kdl", TEST_CARD_LAYOUT)?;
+    test_project.register_layout("test_layout", layout);
 
     println!("Setting up test card...");
-    let mut test_card = Card::new("testing".to_string());
+    let mut test_card = Card::new("test_card_id".to_string());
     test_card.fields_mut().insert("name".to_string(), NAME.to_string());
     test_card.fields_mut().insert("version".to_string(), VERSION.to_string());
+    test_card.fields_mut().insert("layout".to_string(), "test_layout".to_string());
+    test_project.add_card(test_card);
 
     println!("Initializing Skia rendering engine...");
     let skia = SkiaRenderer::new();
 
     println!("Rendering test card...");
-    let test_card_image = skia.render_single(&test_card, &layout)?;
+    let test_card_image = skia.render_single(&test_project, "test_card_id")?;
 
     println!("Saving test card image to ./test-card.png...");
     skia.write_png(test_card_image, Path::new("./test-card.png"))?;

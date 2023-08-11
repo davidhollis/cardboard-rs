@@ -1,6 +1,6 @@
 use std::{path::Path, fmt::Debug};
 
-use crate::{data::Card, layout::{Layout, printing::PageMetrics}};
+use crate::{data::{project::Project}, layout::{printing::PageMetrics}};
 
 mod skia;
 pub use skia::SkiaRenderer;
@@ -9,7 +9,7 @@ pub trait Renderer {
     type SingleCard;
     type Error;
 
-    fn render_single(&self, card: &Card, layout: &Layout) -> Result<Self::SingleCard, Self::Error>;
+    fn render_single(&self, project: &Project, card_id: &str) -> Result<Self::SingleCard, Self::Error>;
     fn write_png<P>(&self, card: Self::SingleCard, path: P) -> Result<(), Self::Error>
     where
         P: AsRef<Path> + Debug;
