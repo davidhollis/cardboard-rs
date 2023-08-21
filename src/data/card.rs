@@ -61,3 +61,41 @@ impl<'a> Serialize for Card {
         serializer.collect_map(self.fields.iter())
     }
 }
+
+pub mod loaders {
+    use std::{path::Path, collections::HashMap};
+
+    use miette::IntoDiagnostic;
+
+    use super::Card;
+
+    pub fn load_csv<P: AsRef<Path>>(csv_path: P) -> miette::Result<Vec<Card>> {
+        let file_name_stem = csv_path.as_ref().file_stem().and_then(|p| p.to_str());
+        let mut csv_reader =
+            csv::ReaderBuilder::new()
+                .flexible(true)
+                .trim(csv::Trim::All)
+                .from_path(&csv_path)
+                .into_diagnostic()?;
+        
+        Ok(csv_reader
+            .deserialize()
+            .enumerate()
+            .map(|(idx, card_hash)| {
+                let mut card_hash: HashMap<String, String> = card_hash.unwrap_or_default();
+                let mut card = Card::new(
+                    match card_hash.remove("id") {
+                        Some(explicit_card_id) => explicit_card_id,
+                        None => match file_name_stem {
+                            Some(stem) => format!("{}_{:04}", stem, idx),
+                            None => format!("{:04}", idx),
+                        },
+                    }
+                );
+                card.fields_mut().extend(card_hash);
+                card
+            })
+            .collect()
+        )
+    }
+}

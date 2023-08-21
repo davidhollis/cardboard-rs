@@ -24,3 +24,4 @@ skia-safe = { version = "0.63.0", features = ["textlayout"] }
 thiserror = "1.0.43"
 lazy_static = "1.4.0"
 regex = "1.9.1"
+csv = "1.2.2"

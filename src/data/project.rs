@@ -1,11 +1,11 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, path::Path, fs};
 
-use miette::Diagnostic;
+use miette::{Diagnostic, IntoDiagnostic};
 use thiserror::Error;
 
 use crate::layout::{Layout, model::styles::color::Color};
 
-use super::{config::Config, globals, card::Card};
+use super::{config::Config, globals, card::{Card, self}};
 
 pub struct Project {
     cards: HashMap<String, Card>,
@@ -21,6 +21,47 @@ impl Project {
             layouts: HashMap::new(),
             colors: HashMap::new(),
             config: None,
+        }
+    }
+
+    pub fn load_from_directory<P: AsRef<Path>>(project_dir: P) -> miette::Result<Project> {
+        if project_dir.as_ref().is_dir() {
+            let mut project = Project::new();
+            for entry in fs::read_dir(project_dir).into_diagnostic()? {
+                let entry = entry.into_diagnostic()?;
+                let path = entry.path();
+                match path.extension().and_then(|p| p.to_str()) {
+                    Some("layout") => {
+                        let file_contents_bytes = fs::read(&path).into_diagnostic()?;
+                        let file_contents_str = std::str::from_utf8(file_contents_bytes.as_slice()).into_diagnostic()?;
+                        let file_name =
+                            path.file_name()
+                                .and_then(|p| p.to_str())
+                                .ok_or(ProjectConfigurationError::Other(format!("Path {} has no filename", path.display())))?;
+                        let file_stem =
+                            path.file_stem()
+                                .and_then(|p| p.to_str())
+                                .ok_or(ProjectConfigurationError::Other(format!("Path {} has no file stem", path.display())))?;
+                        let layout: Layout = knuffel::parse(file_name, file_contents_str)?;
+                        project.register_layout(file_stem, layout);
+                    },
+                    Some("csv") => {
+                        let csv_cards = card::loaders::load_csv(path)?;
+                        for card in csv_cards {
+                            project.add_card(card);
+                        }
+                    },
+                    // Some("xls") | Some("xlsx") => { /* load a bunch of cards from an excel file */ },
+                    // Some("colors") => { /* load project colors */ },
+                    // Some("conf") => { /* load project config */ },
+                    _ => {},
+                }
+            }
+            Ok(project)
+        } else {
+            Err(ProjectConfigurationError::NotADirectory(
+                format!("{}",project_dir.as_ref().display())
+            ).into())
         }
     }
 
@@ -74,4 +115,8 @@ pub enum ProjectConfigurationError {
     NoLayoutFound(String),
     #[error("couldn't find a definition for a color named '{0}'")]
     InvalidColorName(String),
+    #[error("project path {0} is not a directory")]
+    NotADirectory(String),
+    #[error("{0}")]
+    Other(String),
 }
