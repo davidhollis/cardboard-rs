@@ -26,6 +26,7 @@ impl Project {
 
     pub fn load_from_directory<P: AsRef<Path>>(project_dir: P) -> miette::Result<Project> {
         if project_dir.as_ref().is_dir() {
+            log::info!("Loading project from directory {}", project_dir.as_ref().to_str().unwrap_or_default());
             let mut project = Project::new();
             for entry in fs::read_dir(project_dir).into_diagnostic()? {
                 let entry = entry.into_diagnostic()?;
@@ -44,16 +45,29 @@ impl Project {
                                 .ok_or(ProjectConfigurationError::Other(format!("Path {} has no file stem", path.display())))?;
                         let layout: Layout = knuffel::parse(file_name, file_contents_str)?;
                         project.register_layout(file_stem, layout);
+                        log::info!("Successfully loaded layout \"{}\" from file {}", file_stem, file_name);
                     },
                     Some("csv") => {
-                        let csv_cards = card::loaders::load_csv(path)?;
+                        let set_name = path.file_stem().and_then(|p| p.to_str()).unwrap_or_default();
+                        log::info!("Found card set \"{}\" in file {}",
+                            set_name,
+                            path.file_name().and_then(|p| p.to_str()).unwrap_or_default(),
+                        );
+                        let csv_cards = card::loaders::load_csv(&path)?;
                         for card in csv_cards {
+                            log::debug!("Loaded card \"{}\" from card set \"{}\"", card.id, set_name);
                             project.add_card(card);
                         }
                     },
                     Some("xls") | Some("xlsx") | Some("xlsm") | Some("xlsb") | Some("ods") => {
-                        let xls_cards = card::loaders::load_excel(path)?;
+                        let set_name = path.file_stem().and_then(|p| p.to_str()).unwrap_or_default();
+                        log::info!("Found card set \"{}\" in file {}",
+                            set_name,
+                            path.file_name().and_then(|p| p.to_str()).unwrap_or_default(),
+                        );
+                        let xls_cards = card::loaders::load_excel(&path)?;
                         for card in xls_cards {
+                            log::debug!("Loaded card \"{}\" from card set \"{}\"", card.id, set_name);
                             project.add_card(card);
                         }
                     },
@@ -62,6 +76,8 @@ impl Project {
                     _ => {},
                 }
             }
+
+            log::info!("Finished loading project");
             Ok(project)
         } else {
             Err(ProjectConfigurationError::NotADirectory(

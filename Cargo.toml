@@ -18,6 +18,10 @@ path = "bin/main.rs"
 name = "version-card"
 path = "examples/version_card.rs"
 
+[[example]]
+name = "render-sample-project"
+path = "examples/render_sample_project.rs"
+
 [dependencies]
 miette = { version = "5.9.0", features = ["fancy"] }
 knuffel = "3.2.0"
@@ -30,3 +34,5 @@ lazy_static = "1.4.0"
 regex = "1.9.1"
 csv = "1.2.2"
 calamine = "0.21.2"
+log = "0.4.20"
+log4rs = "1.2.0"
