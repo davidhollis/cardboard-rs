@@ -51,7 +51,12 @@ impl Project {
                             project.add_card(card);
                         }
                     },
-                    // Some("xls") | Some("xlsx") => { /* load a bunch of cards from an excel file */ },
+                    Some("xls") | Some("xlsx") | Some("xlsm") | Some("xlsb") | Some("ods") => {
+                        let xls_cards = card::loaders::load_excel(path)?;
+                        for card in xls_cards {
+                            project.add_card(card);
+                        }
+                    },
                     // Some("colors") => { /* load project colors */ },
                     // Some("conf") => { /* load project config */ },
                     _ => {},

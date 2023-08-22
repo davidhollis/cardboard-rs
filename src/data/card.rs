@@ -65,12 +65,14 @@ impl<'a> Serialize for Card {
 pub mod loaders {
     use std::{path::Path, collections::HashMap};
 
-    use miette::IntoDiagnostic;
+    use calamine::Reader;
+    use miette::{IntoDiagnostic, Diagnostic};
+    use thiserror::Error;
 
     use super::Card;
 
     pub fn load_csv<P: AsRef<Path>>(csv_path: P) -> miette::Result<Vec<Card>> {
-        let file_name_stem = csv_path.as_ref().file_stem().and_then(|p| p.to_str());
+        let file_name_stem = csv_path.as_ref().file_stem().and_then(|p| p.to_str()).map(|p| p.to_string());
         let mut csv_reader =
             csv::ReaderBuilder::new()
                 .flexible(true)
@@ -80,22 +82,46 @@ pub mod loaders {
         
         Ok(csv_reader
             .deserialize()
+            .map(|hash_result| hash_result.unwrap_or_default())
             .enumerate()
-            .map(|(idx, card_hash)| {
-                let mut card_hash: HashMap<String, String> = card_hash.unwrap_or_default();
-                let mut card = Card::new(
-                    match card_hash.remove("id") {
-                        Some(explicit_card_id) => explicit_card_id,
-                        None => match file_name_stem {
-                            Some(stem) => format!("{}_{:04}", stem, idx),
-                            None => format!("{:04}", idx),
-                        },
-                    }
-                );
-                card.fields_mut().extend(card_hash);
-                card
-            })
+            .map(build_card_from_document_named(file_name_stem))
             .collect()
         )
+    }
+
+    pub fn load_excel<P: AsRef<Path>>(excel_path: P) -> miette::Result<Vec<Card>> {
+        let file_name_stem = excel_path.as_ref().file_stem().and_then(|p| p.to_str()).map(|p| p.to_string());
+        let mut workbook = calamine::open_workbook_auto(&excel_path).into_diagnostic()?;
+        let first_sheet = workbook.worksheet_range_at(0).map_or(Err(CardLoadingError::EmptyWorkbook(format!("{}", excel_path.as_ref().display()))).into_diagnostic(), |result| result.into_diagnostic())?;
+        let rows = calamine::RangeDeserializerBuilder::new().from_range(&first_sheet).into_diagnostic()?;
+
+        Ok(rows
+            .map(|hash_result| hash_result.unwrap_or_default())
+            .enumerate()
+            .map(build_card_from_document_named(file_name_stem))
+            .collect()
+        )
+    }
+
+    fn build_card_from_document_named(doc_name: Option<String>) -> Box<dyn Fn((usize, HashMap<String, String>)) -> Card> {
+        Box::new(move |(idx, mut card_hash)| {
+            let mut card = Card::new(
+                match card_hash.remove("id") {
+                    Some(explicit_card_id) => explicit_card_id,
+                    None => match &doc_name {
+                        Some(stem) => format!("{}_{:04}", stem, idx),
+                        None => format!("{:04}", idx),
+                    },
+                }
+            );
+            card.fields_mut().extend(card_hash);
+            card
+        })
+    }
+
+    #[derive(Error, Diagnostic, Debug)]
+    pub enum CardLoadingError {
+        #[error("Spreadsheet workbook {0} conatins no sheets")]
+        EmptyWorkbook(String),
     }
 }
