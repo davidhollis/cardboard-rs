@@ -1,0 +1,5 @@
+layout,id,name,rules,flavor
+default,"alpha::0001",Sample Card LI,"This is a card with both an explicit id and layout. The layout and id will both be respected (if possible).","Just in case you want to be totally explicit."
+,"alpha::0002",Sample Card XI,"This is a card with an explicit id but a blank layout. The id will be respected, but the default layout will be used.","We understand that sometimes you just want one layout."
+default,,Sample Card LX,"This is a card with an explicit layout but a blank id. The layout will be respected (if possible), but an id will be automatically assigned based on the file name and card index.","You can have control over the layout while letting the system assign reasonable ids."
+,,Sample Card XX,"This is a card with a blank layout and id. The default layout will be used, and an id will be automatically assigned based on the file name and card index.","Just go with the flow."

@@ -1,0 +1,44 @@
+geometry {
+    width 825
+    height 1125
+    cut 37
+    safe 75
+}
+background {
+    solid "white"
+}
+
+// Same as "default", but in papyrus
+
+text "{{name}}" {
+    frame x=75 y=75 w=675 h=200
+    font family="Papyrus" weight="black"
+    size 11 "pt"
+    align "center"
+    foreground "black"
+}
+
+text "{{rules}}" {
+    frame x=75 y=275 w=675 h=500
+    font family="Papyrus"
+    size 8 "pt"
+    align "justify"
+    foreground "black"
+}
+
+text "“{{flavor}}”" {
+    frame x=75 y=775 w=675 h=100
+    font family="Papyrus" style="italic"
+    size 8 "pt"
+    align "right"
+    foreground "black"
+    only-if "{{flavor}}"
+}
+
+text "card id: {{id}}" {
+    frame x=75 y=875 w=675 h=100
+    font family="Courier New"
+    size 8 "pt"
+    align "left"
+    foreground "black"
+}

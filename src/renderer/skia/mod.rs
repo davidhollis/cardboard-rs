@@ -4,7 +4,7 @@ use miette::{Diagnostic, IntoDiagnostic};
 use skia_safe::{EncodedImageFormat, PictureRecorder, Rect, Picture, Surface};
 use thiserror::Error;
 
-use crate::{data::Card, layout::Layout};
+use crate::{data::{project::Project}};
 
 use super::Renderer;
 
@@ -22,7 +22,10 @@ impl Renderer for SkiaRenderer {
     type SingleCard = SkiaCard;
     type Error = miette::Report;
 
-    fn render_single(&self, card: &Card, layout: &Layout) -> Result<Self::SingleCard, Self::Error> {
+    fn render_single(&self, project: &Project, card_id: &str) -> Result<Self::SingleCard, Self::Error> {
+        let card = project.card_by_id(card_id)?;
+        let layout = project.layout_for_card(card)?;
+
         // Prepare a picture recorder for the card
         let mut recorder = PictureRecorder::new();
         let bounding_rect =
@@ -35,10 +38,10 @@ impl Renderer for SkiaRenderer {
         let mut canvas = recorder.begin_recording(bounding_rect, None);
 
         // Draw the card
-        drawing::draw_elements(
-            card,
-            &layout.elements,
+        let render_ctx = drawing::CardRenderContext::new(card, project);
+        render_ctx.draw_elements(
             &mut canvas,
+            &layout.elements,
             layout.geometry.width,
             layout.geometry.height,
         )?;
@@ -102,8 +105,6 @@ impl Renderer for SkiaRenderer {
 pub enum SkiaRendererError {
     #[error("encountered an error while rendering a card: {0}")]
     GraphicsError(String),
-    #[error("color name '{0}' not found")]
-    InvalidColor(String),
 }
 
 pub struct SkiaCard {

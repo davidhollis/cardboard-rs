@@ -1,0 +1,3 @@
+layout,name,rules
+,Sample Card BN,"A normal card from the beta set. This one will be rendered in Palatino, using the default layout. It looks nice enough."
+fancy,Sample Card BF,"A fancy card from the beta set. This one will be rendered in Papyrus, which everyone knows is the fanciest of all typefaces."

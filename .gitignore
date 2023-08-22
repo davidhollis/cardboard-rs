@@ -1,4 +1,5 @@
 /target
+/test-renders
 /*.png
 /*.skp
 /.vscode
