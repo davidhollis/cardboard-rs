@@ -14,6 +14,10 @@ path = "src/lib.rs"
 name = "cardboard"
 path = "bin/main.rs"
 
+[[example]]
+name = "version-card"
+path = "examples/version_card.rs"
+
 [dependencies]
 miette = { version = "5.9.0", features = ["fancy"] }
 knuffel = "3.2.0"

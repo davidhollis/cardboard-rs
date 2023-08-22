@@ -20,7 +20,11 @@ impl Card {
     }
 
     pub fn layout_name(&self) -> Option<String> {
-        self.fields.get("layout").map(|layout_name| layout_name.clone())
+        match self.fields.get("layout").map(|layout_name| layout_name.clone()) {
+            // If there is a layout name, but it's blank, treat that as if there were no layout name
+            Some(l) if l == "" => None,
+            layout => layout,
+        }
     }
 }
 
@@ -58,7 +62,7 @@ impl<'a> Serialize for Card {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer {
-        serializer.collect_map(self.fields.iter())
+        serializer.collect_map(std::iter::once((&"id".to_string(), &self.id.clone())).chain(self.fields.iter()))
     }
 }
 
@@ -107,16 +111,23 @@ pub mod loaders {
         Box::new(move |(idx, mut card_hash)| {
             let mut card = Card::new(
                 match card_hash.remove("id") {
+                    None => generate_id(idx, &doc_name),
+                    // Treat a blank id the same as an absent id
+                    Some(blank_id) if blank_id == "" => generate_id(idx, &doc_name),
+                    // If there's an explicit id, just use that
                     Some(explicit_card_id) => explicit_card_id,
-                    None => match &doc_name {
-                        Some(stem) => format!("{}_{:04}", stem, idx),
-                        None => format!("{:04}", idx),
-                    },
                 }
             );
             card.fields_mut().extend(card_hash);
             card
         })
+    }
+
+    fn generate_id(idx: usize, set_name: &Option<String>) -> String {
+        match set_name {
+            Some(set) => format!("{}_{:04}", set, idx + 1),
+            None => format!("{:04}", idx + 1),
+        }
     }
 
     #[derive(Error, Diagnostic, Debug)]
