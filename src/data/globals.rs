@@ -2,10 +2,7 @@ use std::{sync::OnceLock, collections::HashMap};
 
 use crate::layout::{model::styles::color::Color, Layout};
 
-use super::config::Config;
-
 static BUILTIN_LAYOUTS: OnceLock<HashMap<&'static str, Layout>> = OnceLock::new();
-static DEFAULT_CONFIG: OnceLock<Config> = OnceLock::new();
 
 pub fn init_global_data() -> miette::Result<()> {
     // Explicitly ignore double-initialization, as it should be idempotent
@@ -35,8 +32,4 @@ pub fn color_named(name: &str) -> Option<Color> {
         "magenta" => Some(Color::RGBA(0xff, 0x00, 0xff, 0xff)),
         _ => None,
     }
-}
-
-pub fn default_config() -> &'static Config {
-    DEFAULT_CONFIG.get_or_init(|| Config {})
 }

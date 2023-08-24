@@ -4,6 +4,8 @@ use miette::Diagnostic;
 use regex::Regex;
 use thiserror::Error;
 
+use crate::config::util::extract_number_as_float;
+
 use super::units::Units;
 
 lazy_static! {
@@ -16,7 +18,7 @@ pub struct PageSize {
 }
 
 impl PageSize {
-    pub fn get_dimensions_in_points(&self, base_units: Units) -> (f32, f32) {
+    pub fn get_dimensions_in_points(&self, base_units: &Units) -> (f32, f32) {
         let base_dimenstions = match self.dimensions {
             PageDimensions::Letter => (Units::Inches.convert_to_points(8.5), Units::Inches.convert_to_points(11.)),
             PageDimensions::Legal => (Units::Inches.convert_to_points(8.5), Units::Inches.convert_to_points(14.)),
@@ -85,7 +87,7 @@ pub enum CardSize {
 }
 
 impl CardSize {
-    pub fn get_dimensions_in_points(&self, base_units: Units) -> (f32, f32) {
+    pub fn get_dimensions_in_points(&self, base_units: &Units) -> (f32, f32) {
         match self {
             CardSize::Poker => (Units::Millimeters.convert_to_points(63.), Units::Millimeters.convert_to_points(88.)),
             CardSize::Bridge => (Units::Millimeters.convert_to_points(56.), Units::Millimeters.convert_to_points(88.)),
@@ -185,24 +187,6 @@ fn literal_is_number<S>(literal: &Spanned<Literal, S>) -> bool {
     match **literal {
         Literal::Int(_) | Literal::Decimal(_) => true,
         _ => false,
-    }
-}
-
-fn extract_number_as_float<S>(literal: &Spanned<Literal, S>) -> Result<f32, knuffel::errors::DecodeError<S>>
-where S: knuffel::traits::ErrorSpan {
-    match **literal {
-        Literal::Int(ref raw_integer) => {
-            let integer_value: usize = raw_integer.try_into().map_err(|err| knuffel::errors::DecodeError::conversion(&literal, err))?;
-            Ok(integer_value as f32)
-        },
-        Literal::Decimal(ref raw_decimal) => {
-            Ok(
-                raw_decimal
-                .try_into()
-                .map_err(|err| knuffel::errors::DecodeError::conversion(&literal, err))?
-            )
-        },
-        _ => Err(knuffel::errors::DecodeError::scalar_kind(knuffel::decode::Kind::Decimal, &literal))
     }
 }
 
