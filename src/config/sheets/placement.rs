@@ -53,37 +53,18 @@ impl Automatic {
             None => None,
         };
 
-        for i in 0..ncolumns {
-            let column_x = (card.width + gutter.horizontal) * (i as f32) + x_start;
-            for j in 0..nrows {
+        for j in 0..nrows {
+            let row_y = (card.height + gutter.vertical) * (j as f32) + y_start;
+            for i in 0..ncolumns {
                 card_slots.push(layout::CardPlacement {
-                    x: column_x,
-                    y: (card.height + gutter.vertical) * (j as f32) + y_start,
+                    x: (card.width + gutter.horizontal) * (i as f32) + x_start,
+                    y: row_y,
                     rotate: None,
                     reflect: None,
                 })
             }
 
-            if let Some(crop_line_length) = vertical_crop_line_length {
-                crop_lines.push(layout::CropLine {
-                    orientation: layout::CropLineOrientation::Vertical,
-                    offset: column_x,
-                    length: crop_line_length,
-                });
-
-                if gutter.horizontal > 0. || i == ncolumns - 1 {
-                    crop_lines.push(layout::CropLine {
-                        orientation: layout::CropLineOrientation::Vertical,
-                        offset: column_x + card.width,
-                        length: crop_line_length,
-                    });
-                }
-            }
-        }
-
-        if let Some(crop_line_length) = horizontal_crop_line_length {
-            for j in 0..nrows {
-                let row_y = (card.height + gutter.vertical) * (j as f32) + y_start;
+            if let Some(crop_line_length) = horizontal_crop_line_length {
                 crop_lines.push(layout::CropLine {
                     orientation: layout::CropLineOrientation::Horizontal,
                     offset: row_y,
@@ -94,6 +75,26 @@ impl Automatic {
                     crop_lines.push(layout::CropLine {
                         orientation: layout::CropLineOrientation::Horizontal,
                         offset: row_y + card.height,
+                        length: crop_line_length,
+                    });
+                }
+            }
+        }
+
+        if let Some(crop_line_length) = vertical_crop_line_length {
+            for i in 0..ncolumns {
+                let column_x = (card.width + gutter.horizontal) * (i as f32) + x_start;
+
+                crop_lines.push(layout::CropLine {
+                    orientation: layout::CropLineOrientation::Vertical,
+                    offset: column_x,
+                    length: crop_line_length,
+                });
+
+                if gutter.horizontal > 0. || i == ncolumns - 1 {
+                    crop_lines.push(layout::CropLine {
+                        orientation: layout::CropLineOrientation::Vertical,
+                        offset: column_x + card.width,
                         length: crop_line_length,
                     });
                 }
