@@ -45,6 +45,10 @@ fn main() -> miette::Result<()> {
     let layout: Layout = knuffel::parse("test.kdl", TEST_CARD_LAYOUT)?;
     test_project.register_layout("test_layout", layout);
 
+    println!("Setting project metadata...");
+    test_project.pdf_metadata.author = Some("David Hollis <david@hollis.computer>".to_string());
+    test_project.pdf_metadata.title = Some("Test Version Card".to_string());
+
     println!("Setting up test card...");
     let mut test_card = Card::new("test_card_id".to_string());
     test_card.fields_mut().insert("name".to_string(), NAME.to_string());
@@ -59,7 +63,10 @@ fn main() -> miette::Result<()> {
     let test_card_image = skia.render_single(&test_project, "test_card_id")?;
 
     println!("Saving test card image to test-renders/version-card.png...");
-    skia.write_png(test_card_image, Path::new(format!("{}/test-renders/version-card.png", BASE_DIR).as_str()))?;
+    skia.write_png(&test_card_image, Path::new(format!("{}/test-renders/version-card.png", BASE_DIR).as_str()))?;
+
+    println!("Saving test card pdf to test-renders/version-card.pdf...");
+    skia.write_single_pdf(&test_card_image, Path::new(format!("{}/test-renders/version-card.pdf", BASE_DIR).as_str()))?;
 
     println!("Done!");
 

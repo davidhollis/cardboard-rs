@@ -3,15 +3,16 @@ use std::{collections::HashMap, path::Path, fs};
 use miette::{Diagnostic, IntoDiagnostic};
 use thiserror::Error;
 
-use crate::layout::{Layout, model::styles::color::Color};
+use crate::{layout::{Layout, model::styles::color::Color}, config::{sheets::layout::Sheet, RawConfig}};
 
-use super::{config::Config, globals, card::{Card, self}};
+use super::{globals, card::{Card, self}};
 
 pub struct Project {
     cards: HashMap<String, Card>,
     layouts: HashMap<String, Layout>,
     colors: HashMap<String, Color>,
-    config: Option<Config>,
+    sheet_layouts: HashMap<String, Sheet>,
+    pub pdf_metadata: PdfMetadata,
 }
 
 impl Project {
@@ -20,7 +21,8 @@ impl Project {
             cards: HashMap::new(),
             layouts: HashMap::new(),
             colors: HashMap::new(),
-            config: None,
+            sheet_layouts: HashMap::new(),
+            pdf_metadata: PdfMetadata::default(),
         }
     }
 
@@ -71,8 +73,28 @@ impl Project {
                             project.add_card(card);
                         }
                     },
-                    // Some("colors") => { /* load project colors */ },
-                    // Some("conf") => { /* load project config */ },
+                    Some("conf") => {
+                        let file_contents_bytes = fs::read(&path).into_diagnostic()?;
+                        let file_contents_str = std::str::from_utf8(file_contents_bytes.as_slice()).into_diagnostic()?;
+                        let file_name =
+                            path.file_name()
+                                .and_then(|p| p.to_str())
+                                .ok_or(ProjectConfigurationError::Other(format!("Path {} has no filename", path.display())))?;
+                        let config: RawConfig = knuffel::parse(file_name, file_contents_str)?;
+                        let new_colors = config.get_colors()?;
+                        let new_color_count = new_colors.len();
+                        let new_sheet_layouts = config.get_sheet_layouts()?;
+                        let new_sheet_layout_count = new_sheet_layouts.len();
+                        project.colors.extend(new_colors);
+                        project.sheet_layouts.extend(new_sheet_layouts);
+
+                        project.pdf_metadata.author = config.pdf_author;
+                        project.pdf_metadata.title = config.pdf_title;
+                        project.pdf_metadata.subject = config.pdf_subject;
+                        project.pdf_metadata.keywords = config.pdf_keywords;
+
+                        log::info!("Successfully loaded {} colors and {} sheet layouts from file {}", new_color_count, new_sheet_layout_count, file_name);
+                    },
                     _ => {},
                 }
             }
@@ -123,8 +145,21 @@ impl Project {
         self.layouts.insert(name.to_string(), layout);
     }
 
-    pub fn config(&self) -> &Config {
-        self.config.as_ref().unwrap_or_else(|| globals::default_config())
+    pub fn sheet_type_named(&self, name: &str) -> Option<&Sheet> {
+        self.sheet_layouts.get(name)
+    }
+}
+
+pub struct PdfMetadata {
+    pub title: Option<String>,
+    pub author: Option<String>,
+    pub subject: Option<String>,
+    pub keywords: Option<String>,
+}
+
+impl Default for PdfMetadata {
+    fn default() -> Self {
+        PdfMetadata { title: None, author: None, subject: None, keywords: None }
     }
 }
 

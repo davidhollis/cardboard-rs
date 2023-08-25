@@ -10,6 +10,17 @@ pub struct Geometry {
     pub cut: Insets,
     #[knuffel(child)]
     pub safe: Insets,
+    #[knuffel(child, unwrap(argument), default=300usize)]
+    pub dpi: usize,
+}
+
+impl Geometry {
+    pub fn content_size(&self) -> (usize, usize) {
+        (
+            self.width - self.cut.left - self.cut.right,
+            self.height - self.cut.top - self.cut.bottom,
+        )
+    }
 }
 
 #[derive(PartialEq, Eq, Debug)]

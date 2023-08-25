@@ -4,11 +4,12 @@ use miette::{Diagnostic, IntoDiagnostic};
 use skia_safe::{EncodedImageFormat, PictureRecorder, Rect, Picture, Surface};
 use thiserror::Error;
 
-use crate::{data::{project::Project}};
+use crate::{data::{project::Project}, config::sheets::{units, layout::Sheet}, layout::Geometry};
 
 use super::Renderer;
 
 mod drawing;
+mod pdf;
 
 pub struct SkiaRenderer;
 
@@ -19,10 +20,10 @@ impl SkiaRenderer {
 }
 
 impl Renderer for SkiaRenderer {
-    type SingleCard = SkiaCard;
+    type SingleCard<'a> = SkiaCard<'a>;
     type Error = miette::Report;
 
-    fn render_single(&self, project: &Project, card_id: &str) -> Result<Self::SingleCard, Self::Error> {
+    fn render_single<'a>(&self, project: &'a Project, card_id: &str) -> Result<Self::SingleCard<'a>, Self::Error> {
         let card = project.card_by_id(card_id)?;
         let layout = project.layout_for_card(card)?;
 
@@ -38,7 +39,7 @@ impl Renderer for SkiaRenderer {
         let mut canvas = recorder.begin_recording(bounding_rect, None);
 
         // Draw the card
-        let render_ctx = drawing::CardRenderContext::new(card, project);
+        let render_ctx = drawing::CardRenderContext::new(card, project, layout.geometry.dpi);
         render_ctx.draw_elements(
             &mut canvas,
             &layout.elements,
@@ -53,18 +54,18 @@ impl Renderer for SkiaRenderer {
                 .ok_or_else(|| SkiaRendererError::GraphicsError(format!("could not convert draw instructions to picture for card with id {}", card.id)))?;
         Ok(SkiaCard {
             drawing_commands: finished_picture,
-            width: layout.geometry.width as i32,
-            height: layout.geometry.height as i32,
+            project,
+            geometry: &layout.geometry,
         })
     }
 
-    fn write_png<P>(&self, card: Self::SingleCard, path: P) -> Result<(), Self::Error>
+    fn write_png<'a, P>(&self, card: &Self::SingleCard<'a>, path: P) -> Result<(), Self::Error>
     where
         P: AsRef<std::path::Path> + Debug {
         // Prepare the raster surface
         let path_str = format!("{:?}", path);
         let mut surface =
-            Surface::new_raster_n32_premul((card.width, card.height))
+            Surface::new_raster_n32_premul((card.geometry.width as i32, card.geometry.height as i32))
             .ok_or_else(|| SkiaRendererError::GraphicsError(format!("could not create a surface for writing ({path_str})")))?;
 
         // Draw the saved picture
@@ -87,17 +88,50 @@ impl Renderer for SkiaRenderer {
         Ok(())
     }
 
-    fn write_single_pdf<P>(&self, _card: Self::SingleCard, _path: P) -> Result<(), Self::Error>
+    fn write_single_pdf<'a, P>(&self, card: &Self::SingleCard<'a>, path: P) -> Result<(), Self::Error>
     where
         P: AsRef<std::path::Path> + Debug {
-        todo!()
+        let document_width = units::pixels_to_points(card.geometry.width, card.geometry.dpi);
+        let document_height = units::pixels_to_points(card.geometry.height, card.geometry.dpi);
+        let card_scale = units::scale_factor_at_dpi(card.geometry.dpi);
+
+        let document = skia_safe::pdf::new_document(Some(&pdf::metadata_from_project(card.project)));
+        let mut document = document.begin_page((document_width, document_height), None);
+        document.canvas().scale((card_scale, card_scale));
+        card.drawing_commands.playback(document.canvas());
+        let document = document.end_page();
+        let pdf_data = document.close();
+
+        let mut pdf_file = File::create(path).into_diagnostic()?;
+        pdf_file.write_all(pdf_data.as_bytes()).into_diagnostic()?;
+        pdf_file.flush().into_diagnostic()?;
+
+        Ok(())
     }
 
-    fn write_deck_pdf<I, P>(&self, _cards: I, _path: P, _page_metrics: crate::layout::printing::PageMetrics) -> Result<(), Self::Error>
+    fn write_deck_pdf<'a, I, P>(&self, cards: I, path: P, sheet: &Sheet) -> Result<(), Self::Error>
     where
-        I: Iterator<Item = Self::SingleCard>,
+        Self::SingleCard<'a>: 'a,
+        I: Iterator<Item = &'a Self::SingleCard<'a>>,
         P: AsRef<std::path::Path> + Debug {
-        todo!()
+        let mut cards = cards.peekable();
+        let project =
+            if let Some(first_card) = cards.peek() {
+                first_card.project
+            } else {
+                // rendering no cards is probably fine, but we shouldn't output
+                // a file in that case.
+                return Ok(())
+            };
+        let document = skia_safe::pdf::new_document(Some(&pdf::metadata_from_project(project)));
+        let document = pdf::draw_cards_in_document(cards, document, sheet)?;
+        let pdf_data = document.close();
+
+        let mut pdf_file = File::create(path).into_diagnostic()?;
+        pdf_file.write_all(pdf_data.as_bytes()).into_diagnostic()?;
+        pdf_file.flush().into_diagnostic()?;
+
+        Ok(())
     }
 }
 
@@ -107,8 +141,8 @@ pub enum SkiaRendererError {
     GraphicsError(String),
 }
 
-pub struct SkiaCard {
+pub struct SkiaCard<'a> {
     drawing_commands: Picture,
-    width: i32,
-    height: i32,
+    project: &'a Project,
+    geometry: &'a Geometry,
 }

@@ -24,6 +24,7 @@ mod tests {
         height 1125
         cut 37
         safe 75
+        dpi 300
     }
     background {
         solid "white"
@@ -62,7 +63,8 @@ mod tests {
                     width: 825,
                     height: 1125,
                     cut: Insets::uniform(37),
-                    safe: Insets::uniform(75)
+                    safe: Insets::uniform(75),
+                    dpi: 300,
                 },
                 elements: vec![
                     Element::Background(Background {
