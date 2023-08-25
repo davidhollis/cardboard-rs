@@ -33,13 +33,13 @@ impl RawConfig {
         Ok(color_map)
     }
 
-    pub fn get_sheet_layouts(&self) -> HashMap<String, sheets::layout::Sheet> {
+    pub fn get_sheet_layouts(&self) -> miette::Result<HashMap<String, sheets::layout::Sheet>> {
         let mut sheet_map = HashMap::new();
 
         for sheet_type in &self.sheet_types {
-            sheet_map.insert(sheet_type.name.clone(), sheet_type.compile());
+            sheet_map.insert(sheet_type.name.clone(), sheet_type.compile()?);
         }
 
-        sheet_map
+        Ok(sheet_map)
     }
 }

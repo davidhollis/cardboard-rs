@@ -50,7 +50,7 @@ fn get_current_time_as_skia() -> DateTime {
 }
 
 pub(super) fn draw_cards_in_document<'a, I>(cards: I, document: Document<Open>, sheet: &Sheet) -> miette::Result<Document<Open>>
-where I: Iterator<Item = SkiaCard<'a>> {
+where I: Iterator<Item = &'a SkiaCard<'a>> {
     let cards_per_sheet = sheet.num_cards();
     let page_size = (sheet.page_size.width, sheet.page_size.height);
     let mut document = document.begin_page(page_size, None);
@@ -83,21 +83,30 @@ where I: Iterator<Item = SkiaCard<'a>> {
         // https://github.com/davidhollis/cardboard-rs/issues/25
 
         // Translate the canvas so the origin is now the upper left corner of the card
+        // slot.
         canvas.translate((slot.x, slot.y));
 
         // Scale the canvas so 1 unit = 1 pixel
         let card_scale = units::scale_factor_at_dpi(card.geometry.dpi);
         canvas.scale((card_scale, card_scale));
 
-        // Translate back so the origin is at the intersection of the top and left cut lines
+        // Translate back so the intersection of the top and left cut lines (the origin
+        // of the card's content box) coincides with the top left corner of the sheet's
+        // corresponding card slot.
         canvas.translate((-(card.geometry.cut.left as f32), -(card.geometry.cut.top as f32)));
 
-        // Set a clipping mask that covers the area inside the cut lines
+        // Set a clipping mask that covers the area inside the cut lines (the card's
+        // content box).
         // TODO(#26): Make this configurable. Sometimes we might want to draw the overflow in the gutter
         // https://github.com/davidhollis/cardboard-rs/issues/26
         let (content_width, content_height) = card.geometry.content_size();
         canvas.clip_rect(
-            Rect::from_xywh(0., 0., content_width as f32, content_height as f32),
+            Rect::from_xywh(
+                card.geometry.cut.left as f32,
+                card.geometry.cut.top as f32,
+                content_width as f32,
+                content_height as f32,
+            ),
             Some(skia_safe::ClipOp::Intersect),
             Some(true),
         );

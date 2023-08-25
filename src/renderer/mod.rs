@@ -18,6 +18,7 @@ pub trait Renderer {
         P: AsRef<Path> + Debug;
     fn write_deck_pdf<'a, I, P>(&self, cards: I, path: P, sheet: &Sheet) -> Result<(), Self::Error>
     where
-        I: Iterator<Item = Self::SingleCard<'a>>,
+        Self::SingleCard<'a>: 'a,
+        I: Iterator<Item = &'a Self::SingleCard<'a>>,
         P: AsRef<Path> + Debug;
 }

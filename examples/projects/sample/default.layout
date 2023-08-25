@@ -5,6 +5,10 @@ geometry {
     safe 75
 }
 background {
+    solid "red"
+}
+
+rectangle x=37 y=37 w=751 h=1051 {
     solid "white"
 }
 

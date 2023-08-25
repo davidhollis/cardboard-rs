@@ -4,36 +4,6 @@ use thiserror::Error;
 use super::{layout, units::Units};
 
 #[derive(knuffel::Decode)]
-pub enum Placement {
-    Automatic(Automatic),
-    Manual(Manual),
-}
-
-impl Placement {
-    pub fn compile(&self, page: layout::Dimensions, card: layout::Dimensions, base_units: &Units) -> layout::Sheet {
-        match self {
-            Placement::Automatic(auto_placement_config) => {
-                let (cards, crop_lines) = auto_placement_config.compile(&page, &card, base_units);
-                layout::Sheet {
-                    page_size: page,
-                    card_size: card,
-                    crop_lines,
-                    cards,
-                }
-            },
-            Placement::Manual(Manual { crop_lines, cards }) => {
-                layout::Sheet {
-                    page_size: page,
-                    card_size: card,
-                    crop_lines: crop_lines.as_ref().map(|lines| lines.compile(base_units)).unwrap_or_default(),
-                    cards: cards.iter().map(|card| card.compile(base_units)).collect(),
-                }
-            }
-        }
-    }
-}
-
-#[derive(knuffel::Decode)]
 pub struct Automatic {
     #[knuffel(child)]
     crop_lines: Option<automatic::CropLines>,
@@ -41,12 +11,12 @@ pub struct Automatic {
     margins: automatic::Margins,
     #[knuffel(child, default)]
     gutter: automatic::Gutter,
-    #[knuffel(child, unwrap(argument, str))]
+    #[knuffel(child, unwrap(argument, str, default), default)]
     align: automatic::Align,
 }
 
 impl Automatic {
-    fn compile(&self, page: &layout::Dimensions, card: &layout::Dimensions, base_units: &Units) -> (Vec<layout::CardPlacement>, Vec<layout::CropLine>) {
+    pub(super) fn compile(&self, page: &layout::Dimensions, card: &layout::Dimensions, base_units: &Units) -> (Vec<layout::CardPlacement>, Vec<layout::CropLine>) {
         let margins = self.margins.into_points(base_units);
         let gutter = self.gutter.into_points(base_units);
 
@@ -309,6 +279,15 @@ pub struct Manual {
     cards: Vec<manual::Card>,
 }
 
+impl Manual {
+    pub(super) fn compile(&self, base_units: &Units) -> (Vec<layout::CardPlacement>, Vec<layout::CropLine>) {
+        (
+            self.cards.iter().map(|card| card.compile(base_units)).collect(),
+            self.crop_lines.as_ref().map(|lines| lines.compile(base_units)).unwrap_or_default(),
+        )
+    }
+}
+
 mod manual {
     use std::str::FromStr;
 
@@ -398,4 +377,6 @@ pub enum PlacementError {
     InvalidAlignment(String),
     #[error("invalid reflection axis \"{0}\" (expected one of \"horizontal\" or \"vertical\")")]
     InvalidAxis(String),
+    #[error("no placement method specified (expected either an automatic or a manual stanza)")]
+    Missing,
 }

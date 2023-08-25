@@ -83,7 +83,7 @@ impl Project {
                         let config: RawConfig = knuffel::parse(file_name, file_contents_str)?;
                         let new_colors = config.get_colors()?;
                         let new_color_count = new_colors.len();
-                        let new_sheet_layouts = config.get_sheet_layouts();
+                        let new_sheet_layouts = config.get_sheet_layouts()?;
                         let new_sheet_layout_count = new_sheet_layouts.len();
                         project.colors.extend(new_colors);
                         project.sheet_layouts.extend(new_sheet_layouts);
@@ -143,6 +143,10 @@ impl Project {
 
     pub fn register_layout(&mut self, name: &str, layout: Layout) -> () {
         self.layouts.insert(name.to_string(), layout);
+    }
+
+    pub fn sheet_type_named(&self, name: &str) -> Option<&Sheet> {
+        self.sheet_layouts.get(name)
     }
 }
 

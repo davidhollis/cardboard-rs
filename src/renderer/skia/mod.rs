@@ -111,7 +111,8 @@ impl Renderer for SkiaRenderer {
 
     fn write_deck_pdf<'a, I, P>(&self, cards: I, path: P, sheet: &Sheet) -> Result<(), Self::Error>
     where
-        I: Iterator<Item = Self::SingleCard<'a>>,
+        Self::SingleCard<'a>: 'a,
+        I: Iterator<Item = &'a Self::SingleCard<'a>>,
         P: AsRef<std::path::Path> + Debug {
         let mut cards = cards.peekable();
         let project =
