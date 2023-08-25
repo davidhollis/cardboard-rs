@@ -5,7 +5,7 @@ geometry {
     safe 75
 }
 background {
-    solid "red"
+    solid "cutzone"
 }
 
 rectangle x=37 y=37 w=751 h=1051 {
