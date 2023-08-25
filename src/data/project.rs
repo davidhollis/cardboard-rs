@@ -12,6 +12,7 @@ pub struct Project {
     layouts: HashMap<String, Layout>,
     colors: HashMap<String, Color>,
     sheet_layouts: HashMap<String, Sheet>,
+    pub pdf_metadata: PdfMetadata,
 }
 
 impl Project {
@@ -21,6 +22,7 @@ impl Project {
             layouts: HashMap::new(),
             colors: HashMap::new(),
             sheet_layouts: HashMap::new(),
+            pdf_metadata: PdfMetadata::default(),
         }
     }
 
@@ -85,6 +87,12 @@ impl Project {
                         let new_sheet_layout_count = new_sheet_layouts.len();
                         project.colors.extend(new_colors);
                         project.sheet_layouts.extend(new_sheet_layouts);
+
+                        project.pdf_metadata.author = config.pdf_author;
+                        project.pdf_metadata.title = config.pdf_title;
+                        project.pdf_metadata.subject = config.pdf_subject;
+                        project.pdf_metadata.keywords = config.pdf_keywords;
+
                         log::info!("Successfully loaded {} colors and {} sheet layouts from file {}", new_color_count, new_sheet_layout_count, file_name);
                     },
                     _ => {},
@@ -135,6 +143,19 @@ impl Project {
 
     pub fn register_layout(&mut self, name: &str, layout: Layout) -> () {
         self.layouts.insert(name.to_string(), layout);
+    }
+}
+
+pub struct PdfMetadata {
+    pub title: Option<String>,
+    pub author: Option<String>,
+    pub subject: Option<String>,
+    pub keywords: Option<String>,
+}
+
+impl Default for PdfMetadata {
+    fn default() -> Self {
+        PdfMetadata { title: None, author: None, subject: None, keywords: None }
     }
 }
 

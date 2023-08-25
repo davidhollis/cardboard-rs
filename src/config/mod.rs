@@ -8,6 +8,14 @@ pub mod util;
 
 #[derive(knuffel::Decode)]
 pub struct RawConfig {
+    #[knuffel(child, unwrap(argument))]
+    pub pdf_title: Option<String>,
+    #[knuffel(child, unwrap(argument))]
+    pub pdf_author: Option<String>,
+    #[knuffel(child, unwrap(argument))]
+    pub pdf_subject: Option<String>,
+    #[knuffel(child, unwrap(argument))]
+    pub pdf_keywords: Option<String>,
     #[knuffel(children(name="color"))]
     colors: Vec<colors::ColorDefinition>,
     #[knuffel(children(name="sheet-type"))]

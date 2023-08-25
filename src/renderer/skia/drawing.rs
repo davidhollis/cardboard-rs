@@ -2,16 +2,17 @@ use skia_safe::{Canvas, Paint, Color4f, IRect, PaintStyle, textlayout::{TextStyl
 
 use crate::{layout::{Element, Rectangle, Text, Box, model::styles::{color::{ColorRef, Color as CardboardColor}, stroke::DashPattern, text::{Foreground, Background as TextBackground, Align, Alignment}, font::{Weight, Width}}, PathStyle, Stroke, Solid, TextStyle, Font}, data::{card::Card, project::{Project}}};
 
-use super::SkiaRendererError;
+use super::{SkiaRendererError};
 
 pub struct CardRenderContext<'a> {
     card: &'a Card,
     project: &'a Project,
+    dpi: usize,
 }
 
 impl<'a> CardRenderContext<'a> {
-    pub fn new(card: &'a Card, project: &'a Project) -> CardRenderContext<'a> {
-        CardRenderContext { card, project }
+    pub fn new(card: &'a Card, project: &'a Project, dpi: usize) -> CardRenderContext<'a> {
+        CardRenderContext { card, project, dpi }
     }
 
     pub fn draw_elements(&self, canvas: &mut Canvas, elements: &Vec<Element>, frame_width: usize, frame_height: usize) -> Result<(), miette::Error> {
@@ -186,7 +187,7 @@ impl<'a> CardRenderContext<'a> {
                     ));
                 },
                 TextStyle::Size(sz) => {
-                    text_style.set_font_size(sz.pixel_size());
+                    text_style.set_font_size(sz.pixel_size(self.dpi));
                 },
                 TextStyle::Align(Align {alignment}) => {
                     text_align = match alignment {

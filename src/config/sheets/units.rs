@@ -36,6 +36,15 @@ impl FromStr for Units {
     }
 }
 
+pub fn pixels_to_points(length: usize, dpi: usize) -> f32 {
+    let length_inches = (length as f32)/(dpi as f32);
+    Units::Inches.convert_to_points(length_inches)
+}
+
+pub fn scale_factor_at_dpi(dpi: usize) -> f32 {
+    POINTS_PER_INCH / (dpi as f32)
+}
+
 #[derive(Error, Diagnostic, Debug)]
 pub enum UnitError {
     #[error("invalid page unit \"{0}\". Expected one of \"in\", \"pt\", or \"mm\"")]

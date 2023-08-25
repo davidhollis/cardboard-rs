@@ -176,6 +176,7 @@ name = "cardboard"
 version = "0.1.0"
 dependencies = [
  "calamine",
+ "chrono",
  "csv",
  "handlebars",
  "knuffel",

@@ -29,7 +29,7 @@ fn main() -> miette::Result<()> {
         log::info!("Rendering card \"{}\" to {}", card.id, card_image_path);
 
         let rendered_card = renderer.render_single(&sample_project, &card.id)?;
-        renderer.write_png(rendered_card, card_image_path)?;
+        renderer.write_png(&rendered_card, card_image_path)?;
     }
 
     log::info!("Finished rendering {} cards", sample_project.all_cards().count());

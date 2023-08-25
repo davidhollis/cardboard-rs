@@ -3,7 +3,6 @@ use std::{convert::Infallible, str::FromStr};
 use super::color::ColorRef;
 
 const POINTS_PER_INCH: f32 = 72.0f32;
-const ASSUMED_PIXELS_PER_INCH: f32 = 300.0f32;
 
 #[derive(knuffel::Decode, PartialEq, Eq, Debug, Clone)]
 pub struct Foreground {
@@ -26,12 +25,12 @@ pub struct Size {
 }
 
 impl Size {
-    pub fn pixel_size(&self) -> f32 {
+    pub fn pixel_size(&self, dpi: usize) -> f32 {
         match self.units {
             Units::Pixels => self.size as f32,
             Units::Points => {
                 let pts = self.size as f32;
-                pts * ASSUMED_PIXELS_PER_INCH / POINTS_PER_INCH
+                pts * (dpi as f32) / POINTS_PER_INCH
             },
         }
     }
