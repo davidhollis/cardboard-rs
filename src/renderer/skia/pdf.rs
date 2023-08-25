@@ -55,8 +55,6 @@ where I: Iterator<Item = &'a SkiaCard<'a>> {
     let page_size = (sheet.page_size.width, sheet.page_size.height);
     let mut document = document.begin_page(page_size, None);
 
-    draw_crop_lines(document.canvas(), sheet);
-
     for (idx_in_set, card) in cards.enumerate() {
         let idx_on_sheet = idx_in_set % cards_per_sheet;
         let sheet_number = idx_in_set / cards_per_sheet;
@@ -64,8 +62,8 @@ where I: Iterator<Item = &'a SkiaCard<'a>> {
         if idx_on_sheet == 0 && sheet_number > 0 {
             // When we encounter the first card on every sheet that isn't the
             // first one, open a new page
-            document = document.end_page().begin_page(page_size, None);
             draw_crop_lines(document.canvas(), sheet);
+            document = document.end_page().begin_page(page_size, None);
         }
 
         let slot =
@@ -117,6 +115,8 @@ where I: Iterator<Item = &'a SkiaCard<'a>> {
         // Reset the canvas state
         canvas.restore();
     }
+
+    draw_crop_lines(document.canvas(), sheet);
 
     Ok(document.end_page())
 }
