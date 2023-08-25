@@ -31,7 +31,7 @@ fn main() -> miette::Result<()> {
     std::fs::create_dir_all(&output_dir).into_diagnostic()?;
 
     let sample_project = Project::load_from_directory(sample_project_dir)?;
-    let renderer = SkiaRenderer::new();
+    let mut renderer = SkiaRenderer::new();
     let mut rendered_cards: HashMap<String, <SkiaRenderer as Renderer>::SingleCard<'_>> = HashMap::new();
 
     // Render each card and write it out as a png

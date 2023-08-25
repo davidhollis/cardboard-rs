@@ -1,4 +1,5 @@
 pub mod containers;
+pub mod image;
 pub mod shapes;
 pub mod text;
 
@@ -8,6 +9,7 @@ pub enum Element {
     //       group {transform;clip}
     Rectangle(shapes::Rectangle),
     Text(text::Text),
+    Image(image::Image),
     Box(containers::Box),
     Background(shapes::Background),
 }
@@ -22,4 +24,10 @@ pub struct Frame {
     pub w: usize,
     #[knuffel(property)]
     pub h: usize,
+}
+
+impl Frame {
+    pub fn center(&self) -> (usize, usize) {
+        (self.x + self.w/2, self.y + self.h/2)
+    }
 }

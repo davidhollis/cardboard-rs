@@ -57,7 +57,7 @@ fn main() -> miette::Result<()> {
     test_project.add_card(test_card);
 
     println!("Initializing Skia rendering engine...");
-    let skia = SkiaRenderer::new();
+    let mut skia = SkiaRenderer::new();
 
     println!("Rendering test card...");
     let test_card_image = skia.render_single(&test_project, "test_card_id")?;

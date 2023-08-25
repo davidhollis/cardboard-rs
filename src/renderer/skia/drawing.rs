@@ -1,25 +1,27 @@
 use skia_safe::{Canvas, Paint, Color4f, IRect, PaintStyle, textlayout::{TextStyle as SkTextStyle, FontCollection, ParagraphBuilder, ParagraphStyle}, FontMgr, Rect, ClipOp, Color as SkiaColor, PathEffect, FontStyle, font_style::Slant};
 
-use crate::{layout::{Element, Rectangle, Text, Box, model::styles::{color::{ColorRef, Color as CardboardColor}, stroke::DashPattern, text::{Foreground, Background as TextBackground, Align, Alignment}, font::{Weight, Width}}, PathStyle, Stroke, Solid, TextStyle, Font}, data::{card::Card, project::{Project}}};
+use crate::{layout::{Element, Rectangle, Text, Box, model::{styles::{color::{ColorRef, Color as CardboardColor}, stroke::DashPattern, text::{Foreground, Background as TextBackground, Align, Alignment}, font::{Weight, Width}}, elements::image::{Image, Scale}}, PathStyle, Stroke, Solid, TextStyle, Font}, data::{card::Card, project::{Project}}};
 
-use super::{SkiaRendererError};
+use super::{SkiaRendererError, SkiaRenderer};
 
 pub struct CardRenderContext<'a> {
     card: &'a Card,
     project: &'a Project,
     dpi: usize,
+    renderer: &'a mut SkiaRenderer,
 }
 
 impl<'a> CardRenderContext<'a> {
-    pub fn new(card: &'a Card, project: &'a Project, dpi: usize) -> CardRenderContext<'a> {
-        CardRenderContext { card, project, dpi }
+    pub fn new(card: &'a Card, project: &'a Project, dpi: usize, renderer: &'a mut SkiaRenderer) -> CardRenderContext<'a> {
+        CardRenderContext { card, project, dpi, renderer }
     }
 
-    pub fn draw_elements(&self, canvas: &mut Canvas, elements: &Vec<Element>, frame_width: usize, frame_height: usize) -> Result<(), miette::Error> {
+    pub fn draw_elements(&mut self, canvas: &mut Canvas, elements: &Vec<Element>, frame_width: usize, frame_height: usize) -> Result<(), miette::Error> {
         for element in elements {
             match element {
                 Element::Background(bg) => self.draw_rect(canvas, &bg.to_rect(frame_width, frame_height))?,
                 Element::Rectangle(rect) => self.draw_rect(canvas, rect)?,
+                Element::Image(image_frame) => self.draw_image(canvas, image_frame)?,
                 Element::Text(text) => self.draw_text(canvas, text)?,
                 Element::Box(bx) => self.draw_box(canvas, bx)?,
             }
@@ -39,6 +41,96 @@ impl<'a> CardRenderContext<'a> {
             canvas.draw_irect(irect, &stroke);
         }
     
+        Ok(())
+    }
+
+    fn draw_image(&mut self, canvas: &mut Canvas, image_frame: &Image) -> Result<(), miette::Error> {
+        let image_name = image_frame.name.render(self.card.try_into()?)?;
+        let image = self.renderer.load_image(&image_name, self.project)?;
+
+        let horizontal_scale_factor = (image_frame.frame.w as f32)/(image.width() as f32);
+        let vertical_scale_factor = (image_frame.frame.h as f32)/(image.height() as f32);
+        let (frame_center_x, frame_center_y) = image_frame.frame.center();
+
+        let mut paint = Paint::new(Color4f::from(SkiaColor::TRANSPARENT), None);
+        paint.set_anti_alias(true);
+
+        match image_frame.scale {
+            Scale::Fit => {
+                let actual_scale_factor = horizontal_scale_factor.min(vertical_scale_factor);
+                let scaled_width = (image.width() as f32) * actual_scale_factor;
+                let scaled_height = (image.height() as f32) * actual_scale_factor;
+                let scaled_image_bounds = Rect::from_xywh(
+                    (frame_center_x as f32) - (scaled_width / 2.),
+                    (frame_center_y as f32) - (scaled_height / 2.),
+                    scaled_width,
+                    scaled_height,
+                );
+
+                log::debug!("Drawing fit image scaled to {}x{} @ ({}, {})", scaled_image_bounds.width(), scaled_image_bounds.height(), scaled_image_bounds.x(), scaled_image_bounds.y());
+
+                canvas.draw_image_rect(image, None, &scaled_image_bounds, &paint);
+            },
+            Scale::Fill => {
+                let actual_scale_factor = horizontal_scale_factor.max(vertical_scale_factor);
+                let scaled_width = (image.width() as f32) * actual_scale_factor;
+                let scaled_height = (image.height() as f32) * actual_scale_factor;
+                let scaled_image_bounds = Rect::from_xywh(
+                    (frame_center_x as f32) - (scaled_width / 2.),
+                    (frame_center_y as f32) - (scaled_height / 2.),
+                    scaled_width,
+                    scaled_height,
+                );
+
+                log::debug!("Drawing filled image scaled to {}x{} @ ({}, {})", scaled_image_bounds.width(), scaled_image_bounds.height(), scaled_image_bounds.x(), scaled_image_bounds.y());
+
+                canvas.save();
+                canvas.clip_irect(
+                    IRect::from_xywh(
+                        image_frame.frame.x as i32,
+                        image_frame.frame.y as i32,
+                        image_frame.frame.w as i32,
+                        image_frame.frame.h as i32,
+                    ),
+                    ClipOp::Intersect,
+                );
+                canvas.draw_image_rect(image, None, &scaled_image_bounds, &paint);
+                canvas.restore();
+            },
+            Scale::Stretch => {
+                log::debug!("Drawing image stretched to {}x{} @ ({}, {})", image_frame.frame.w, image_frame.frame.h, image_frame.frame.x, image_frame.frame.y);
+
+                canvas.draw_image_rect(image, None, Rect::from_xywh(
+                    image_frame.frame.x as f32,
+                    image_frame.frame.y as f32,
+                    image_frame.frame.w as f32,
+                    image_frame.frame.h as f32,
+                ), &paint);
+            },
+            Scale::None => {
+                let unscaled_image_bounds = Rect::from_xywh(
+                    (frame_center_x as f32) - ((image.width() as f32) / 2.),
+                    (frame_center_y as f32) - ((image.height() as f32) / 2.),
+                    image.width() as f32,
+                    image.height() as f32,
+                );
+
+                log::debug!("Drawing unscaled {}x{} image @ ({}, {})", unscaled_image_bounds.width(), unscaled_image_bounds.height(), unscaled_image_bounds.x(), unscaled_image_bounds.y());
+
+                canvas.save();
+                canvas.clip_irect(
+                    IRect::from_xywh(
+                        image_frame.frame.x as i32,
+                        image_frame.frame.y as i32,
+                        image_frame.frame.w as i32,
+                        image_frame.frame.h as i32,
+                    ),
+                    ClipOp::Intersect,
+                );
+                canvas.draw_image_rect(image, None, &unscaled_image_bounds, &paint);
+                canvas.restore();
+            },
+        }
         Ok(())
     }
     
@@ -64,7 +156,7 @@ impl<'a> CardRenderContext<'a> {
         Ok(())
     }
     
-    fn draw_box(&self, canvas: &mut Canvas, bx: &Box) -> Result<(), miette::Error> {
+    fn draw_box(&mut self, canvas: &mut Canvas, bx: &Box) -> Result<(), miette::Error> {
         canvas.save();
         canvas.translate((bx.x as f32, bx.y as f32));
         canvas.clip_rect(Rect::from_iwh(bx.w as i32, bx.h as i32), ClipOp::Intersect, Some(true));

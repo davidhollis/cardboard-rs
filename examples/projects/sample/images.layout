@@ -1,0 +1,101 @@
+geometry {
+    width 825
+    height 1125
+    cut 37
+    safe 75
+}
+background {
+    solid "cutzone"
+}
+
+rectangle x=37 y=37 w=751 h=1051 {
+    solid "white"
+}
+
+text "{{name}}" {
+    frame x=75 y=75 w=675 h=175
+    font family="Optima" weight="black"
+    size 11 "pt"
+    align "center"
+    foreground "black"
+}
+
+
+// === Fit ===
+
+text "Scaling: Fit" {
+    frame x=75 y=252 w=375 h=123
+    font family="Optima"
+    size 11 "pt"
+    align "left"
+    foreground "black"
+}
+
+image "{{picture}}" {
+    frame x=450 y=175 w=300 h=200
+    scale "fit"
+}
+
+rectangle x=450 y=175 w=300 h=200 {
+    stroke 2 "black"
+}
+
+
+// === Fill ===
+
+text "Scaling: Fill" {
+    frame x=75 y=452 w=375 h=123
+    font family="Optima"
+    size 11 "pt"
+    align "left"
+    foreground "black"
+}
+
+image "{{picture}}" {
+    frame x=450 y=375 w=300 h=200
+    scale "fill"
+}
+
+rectangle x=450 y=375 w=300 h=200 {
+    stroke 2 "black"
+}
+
+
+// === Stretch ===
+
+text "Scaling: Fit" {
+    frame x=75 y=652 w=375 h=123
+    font family="Optima"
+    size 11 "pt"
+    align "left"
+    foreground "black"
+}
+
+image "{{picture}}" {
+    frame x=450 y=575 w=300 h=200
+    scale "stretch"
+}
+
+rectangle x=450 y=575 w=300 h=200 {
+    stroke 2 "black"
+}
+
+
+// === None ===
+
+text "Scaling: None" {
+    frame x=75 y=852 w=375 h=123
+    font family="Optima"
+    size 11 "pt"
+    align "left"
+    foreground "black"
+}
+
+image "{{picture}}" {
+    frame x=450 y=775 w=300 h=200
+    scale "none"
+}
+
+rectangle x=450 y=775 w=300 h=200 {
+    stroke 2 "black"
+}

@@ -1,7 +1,7 @@
-use std::{fmt::Debug, fs::File, io::Write};
+use std::{fmt::Debug, fs::File, io::Write, collections::HashMap, sync::Arc};
 
 use miette::{Diagnostic, IntoDiagnostic};
-use skia_safe::{EncodedImageFormat, PictureRecorder, Rect, Picture, Surface};
+use skia_safe::{EncodedImageFormat, PictureRecorder, Rect, Picture, Surface, Image, images, Data};
 use thiserror::Error;
 
 use crate::{data::{project::Project}, config::sheets::{units, layout::Sheet}, layout::Geometry};
@@ -11,11 +11,33 @@ use super::Renderer;
 mod drawing;
 mod pdf;
 
-pub struct SkiaRenderer;
+pub struct SkiaRenderer {
+    images: HashMap<String, Arc<Image>>,
+}
 
 impl SkiaRenderer {
     pub fn new() -> SkiaRenderer {
-        SkiaRenderer
+        SkiaRenderer { images: HashMap::new() }
+    }
+
+    pub fn load_image(&mut self, image_name: &str, project: &Project) -> miette::Result<Arc<Image>> {
+        match self.images.get(image_name) {
+            Some(img) => Ok(img.clone()),
+            None => {
+                log::debug!("Encountered image {} for the first time", image_name);
+                let img_path = project
+                    .full_image_path(image_name)
+                    .ok_or(SkiaRendererError::NoSuchImage(image_name.to_string()))?;
+                let image_data = std::fs::read(img_path).into_diagnostic()?;
+                let loaded_image =
+                    images::deferred_from_encoded_data(Data::new_copy(image_data.as_slice()), None)
+                    .ok_or(SkiaRendererError::GraphicsError(format!("failed to decode image from contents of file {}", img_path)))?;
+                log::debug!("Loaded image with size {}x{}", loaded_image.width(), loaded_image.height());
+                let rc_image = Arc::new(loaded_image);
+                self.images.insert(image_name.to_string(), rc_image.clone());
+                Ok(rc_image)
+            }
+        }
     }
 }
 
@@ -23,7 +45,7 @@ impl Renderer for SkiaRenderer {
     type SingleCard<'a> = SkiaCard<'a>;
     type Error = miette::Report;
 
-    fn render_single<'a>(&self, project: &'a Project, card_id: &str) -> Result<Self::SingleCard<'a>, Self::Error> {
+    fn render_single<'a>(&mut self, project: &'a Project, card_id: &str) -> Result<Self::SingleCard<'a>, Self::Error> {
         let card = project.card_by_id(card_id)?;
         let layout = project.layout_for_card(card)?;
 
@@ -39,7 +61,7 @@ impl Renderer for SkiaRenderer {
         let mut canvas = recorder.begin_recording(bounding_rect, None);
 
         // Draw the card
-        let render_ctx = drawing::CardRenderContext::new(card, project, layout.geometry.dpi);
+        let mut render_ctx = drawing::CardRenderContext::new(card, project, layout.geometry.dpi, self);
         render_ctx.draw_elements(
             &mut canvas,
             &layout.elements,
@@ -139,6 +161,8 @@ impl Renderer for SkiaRenderer {
 pub enum SkiaRendererError {
     #[error("encountered an error while rendering a card: {0}")]
     GraphicsError(String),
+    #[error("no image named {0} was found in the project directory")]
+    NoSuchImage(String),
 }
 
 pub struct SkiaCard<'a> {

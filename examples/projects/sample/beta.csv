@@ -1,3 +1,4 @@
-layout,name,rules
-,"Sample Card B[N]","A normal card from the beta set. This one will be rendered in Palatino, using the default layout. It looks nice enough."
-fancy,"Sample Card B[F]","A fancy card from the beta set. This one will be rendered in Papyrus, which everyone knows is the fanciest of all typefaces."
+layout,name,rules,picture
+,"Sample Card B[N]","A normal card from the beta set. This one will be rendered in Palatino, using the default layout. It looks nice enough.",
+fancy,"Sample Card B[F]","A fancy card from the beta set. This one will be rendered in Papyrus, which everyone knows is the fanciest of all typefaces.",
+images,"Image Test Card",,"assets/peppers"
