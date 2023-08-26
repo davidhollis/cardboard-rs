@@ -127,8 +127,10 @@ impl<'a> CardRenderContext<'a> {
     }
     
     fn draw_text(&self, canvas: &mut Canvas, text: &Text) -> Result<(), miette::Error> {
-        // TODO: eventually support embedded markup to control styles
-        // TODO: eventually support embedded icons
+        // TODO(#13): eventually support embedded markup to control styles
+        // https://github.com/davidhollis/cardboard-rs/issues/13
+        // TODO(#28): eventually support embedded icons
+        // https://github.com/davidhollis/cardboard-rs/issues/28
     
         if let Some(paragraph_style) = self.compute_text_styles(&text.style)? {
             let mut font_collection = FontCollection::new();

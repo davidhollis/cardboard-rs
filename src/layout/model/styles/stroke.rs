@@ -7,7 +7,8 @@ use super::color::ColorRef;
 
 #[derive(knuffel::Decode, PartialEq, Eq, Debug, Clone)]
 pub struct Stroke {
-    // TODO: expand defintion, add joint style
+    // TODO(#9): expand defintion, add joint style
+    // https://github.com/davidhollis/cardboard-rs/issues/9
     #[knuffel(argument)]
     pub width: usize,
     #[knuffel(argument, str)]

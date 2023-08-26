@@ -5,8 +5,10 @@ pub mod text;
 
 #[derive(knuffel::Decode, PartialEq, Eq, Debug)]
 pub enum Element {
-    // TODO: triangle, polygon, star, ellipse, circle, path,
-    //       group {transform;clip}
+    // TODO(#3, #4): triangle, polygon, star, ellipse, circle, path,
+    //               group {transform;clip}
+    // https://github.com/davidhollis/cardboard-rs/issues/3
+    // https://github.com/davidhollis/cardboard-rs/issues/4
     Rectangle(shapes::Rectangle),
     Text(text::Text),
     Image(image::Image),
