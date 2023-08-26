@@ -6,7 +6,8 @@ static BUILTIN_LAYOUTS: OnceLock<HashMap<&'static str, Layout>> = OnceLock::new(
 
 pub fn init_global_data() -> miette::Result<()> {
     // Explicitly ignore double-initialization, as it should be idempotent
-    // TODO: Add some builtin layouts
+    // TODO(#20): Add some builtin layouts
+    // https://github.com/davidhollis/cardboard-rs/issues/20
     let _ = BUILTIN_LAYOUTS.set(HashMap::new());
     Ok(())
 }
