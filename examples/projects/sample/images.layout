@@ -63,7 +63,7 @@ rectangle x=450 y=375 w=300 h=200 {
 
 // === Stretch ===
 
-text "Scaling: Fit" {
+text "Scaling: Stretch" {
     frame x=75 y=652 w=375 h=123
     font family="Optima"
     size 11 "pt"

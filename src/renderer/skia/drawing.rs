@@ -52,7 +52,7 @@ impl<'a> CardRenderContext<'a> {
         let vertical_scale_factor = (image_frame.frame.h as f32)/(image.height() as f32);
         let (frame_center_x, frame_center_y) = image_frame.frame.center();
 
-        let mut paint = Paint::new(Color4f::from(SkiaColor::TRANSPARENT), None);
+        let mut paint = Paint::new(Color4f::from(SkiaColor::BLACK), None);
         paint.set_anti_alias(true);
 
         match image_frame.scale {
@@ -67,8 +67,6 @@ impl<'a> CardRenderContext<'a> {
                     scaled_height,
                 );
 
-                log::debug!("Drawing fit image scaled to {}x{} @ ({}, {})", scaled_image_bounds.width(), scaled_image_bounds.height(), scaled_image_bounds.x(), scaled_image_bounds.y());
-
                 canvas.draw_image_rect(image, None, &scaled_image_bounds, &paint);
             },
             Scale::Fill => {
@@ -81,8 +79,6 @@ impl<'a> CardRenderContext<'a> {
                     scaled_width,
                     scaled_height,
                 );
-
-                log::debug!("Drawing filled image scaled to {}x{} @ ({}, {})", scaled_image_bounds.width(), scaled_image_bounds.height(), scaled_image_bounds.x(), scaled_image_bounds.y());
 
                 canvas.save();
                 canvas.clip_irect(
@@ -98,8 +94,6 @@ impl<'a> CardRenderContext<'a> {
                 canvas.restore();
             },
             Scale::Stretch => {
-                log::debug!("Drawing image stretched to {}x{} @ ({}, {})", image_frame.frame.w, image_frame.frame.h, image_frame.frame.x, image_frame.frame.y);
-
                 canvas.draw_image_rect(image, None, Rect::from_xywh(
                     image_frame.frame.x as f32,
                     image_frame.frame.y as f32,
@@ -114,8 +108,6 @@ impl<'a> CardRenderContext<'a> {
                     image.width() as f32,
                     image.height() as f32,
                 );
-
-                log::debug!("Drawing unscaled {}x{} image @ ({}, {})", unscaled_image_bounds.width(), unscaled_image_bounds.height(), unscaled_image_bounds.x(), unscaled_image_bounds.y());
 
                 canvas.save();
                 canvas.clip_irect(
