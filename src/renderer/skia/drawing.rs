@@ -133,19 +133,17 @@ impl<'a> CardRenderContext<'a> {
         // TODO(#28): eventually support embedded icons
         // https://github.com/davidhollis/cardboard-rs/issues/28
 
-        // If this Text element had a style name specified, look up the style
-        // name in the project config and use that as the base text style.
-        // If there was no style name (or if there was and it wasn't found),
-        // use the base styles from the layout.
-        let mut text_styles =
-            text.style.as_ref()
-            .and_then(|style_name| self.project.style_set_for(style_name))
-            .map(|style_directives| {
-                let mut named_style_set = ComputedTextStyle::default();
-                named_style_set.apply(style_directives);
-                named_style_set
-            })
-            .unwrap_or_else(|| self.base_text_styles.clone());
+        // Build the text styles:
+        // 1. Start with the layout's base styles
+        let mut text_styles = self.base_text_styles.clone();
+
+        // 2. If the Text element has a named style that corresponds to one
+        //    that's in the project's style registry, apply those styles
+        if let Some(named_style) = text.style.as_ref().and_then(|style_name| self.project.style_set_for(style_name)) {
+            text_styles.apply(named_style);
+        }
+
+        // 3. Then apply the inline styles
         text_styles.apply(text.inline_styles.as_slice());
     
         if let Some(paragraph_style) = self.skia_text_styles(text_styles)? {
