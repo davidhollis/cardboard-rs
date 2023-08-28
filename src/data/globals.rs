@@ -1,6 +1,6 @@
 use std::{sync::OnceLock, collections::HashMap};
 
-use crate::layout::{model::styles::color::Color, Layout};
+use crate::layout::{model::styles::color::Color, model::Layout};
 
 static BUILTIN_LAYOUTS: OnceLock<HashMap<&'static str, Layout>> = OnceLock::new();
 

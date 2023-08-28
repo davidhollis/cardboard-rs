@@ -4,7 +4,7 @@ use miette::{Diagnostic, IntoDiagnostic};
 use skia_safe::{EncodedImageFormat, PictureRecorder, Rect, Picture, Surface, Image, images, Data};
 use thiserror::Error;
 
-use crate::{data::{project::Project}, config::sheets::{units, layout::Sheet}, layout::{Geometry, model::styles::text::FlatTextStyle}};
+use crate::{data::{project::Project}, config::sheets::{units, layout::Sheet}, layout::model::{geometry::Geometry, styles::text::FlatTextStyle}};
 
 use super::Renderer;
 

@@ -1,6 +1,6 @@
 use skia_safe::{Canvas, Paint, Color4f, IRect, PaintStyle, textlayout::{TextStyle as SkTextStyle, FontCollection, ParagraphBuilder, ParagraphStyle}, FontMgr, Rect, ClipOp, Color as SkiaColor, PathEffect, FontStyle, font_style::Slant};
 
-use crate::{layout::{Element, Rectangle, Text, Box, model::{styles::{color::{ColorRef, Color as CardboardColor}, stroke::DashPattern, text::{Foreground, Background as TextBackground, Alignment, FlatTextStyle}, font::{Weight, Width}}, elements::image::{Image, Scale}}, PathStyle, Stroke, Solid}, data::{card::Card, project::{Project}}};
+use crate::{layout::model::{elements::{Element, shapes::Rectangle, text::Text, containers::Box, image::{Image, Scale}}, styles::{color::{ColorRef, Color as CardboardColor}, stroke::DashPattern, text::{Foreground, Background as TextBackground, Alignment, FlatTextStyle}, font::{Weight, Width}, PathStyle, stroke::Stroke, solid::Solid}}, data::{card::Card, project::{Project}}};
 
 use super::{SkiaRendererError, SkiaRenderer};
 

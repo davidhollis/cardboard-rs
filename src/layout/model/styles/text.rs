@@ -1,6 +1,6 @@
 use std::{convert::Infallible, str::FromStr};
 
-use crate::layout::{OnlyIf, Font};
+use crate::layout::model::styles::{only_if::OnlyIf, font::Font};
 
 use super::{color::ColorRef, font, TextStyle};
 

@@ -3,7 +3,7 @@ use std::{collections::HashMap, path::Path, fs};
 use miette::{Diagnostic, IntoDiagnostic};
 use thiserror::Error;
 
-use crate::{layout::{Layout, model::styles::color::Color}, config::{sheets::layout::Sheet, RawConfig}};
+use crate::{layout::model::{Layout, styles::color::Color}, config::{sheets::layout::Sheet, RawConfig}};
 
 use super::{globals, card::{Card, self}};
 

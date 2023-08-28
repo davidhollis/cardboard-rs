@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use cardboard::{data::{card::Card, project::Project}, layout::Layout, renderer::{SkiaRenderer, Renderer}};
+use cardboard::{data::{card::Card, project::Project}, layout::model::Layout, renderer::{SkiaRenderer, Renderer}};
 
 const NAME: &str = env!("CARGO_PKG_NAME");
 const VERSION: &str = env!("CARGO_PKG_VERSION");
