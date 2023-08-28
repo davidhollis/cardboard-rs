@@ -8,13 +8,21 @@ pub mod styles;
 pub struct Layout {
     #[knuffel(child)]
     pub geometry: Geometry,
+    #[knuffel(child)]
+    pub base_text: Option<BaseTextStyles>,
     #[knuffel(children)]
     pub elements: Vec<Element>,
 }
 
+#[derive(knuffel::Decode, PartialEq, Eq, Debug)]
+pub struct BaseTextStyles {
+    #[knuffel(children)]
+    pub styles: Vec<styles::TextStyle>,
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::layout::{model::{geometry::{Insets, Geometry}, elements::{shapes::{Background, Rectangle}, Element, text::Text, Frame, containers::Box}, styles::{solid::Solid, PathStyle, only_if::{OnlyIf, OnlyIfOperator}, stroke::{Stroke, DashPattern}, TextStyle, font::{Font, Width, Weight}, color::{ColorRef, Color}}}, templates::TemplateAwareString};
+    use crate::layout::{model::{geometry::{Insets, Geometry}, elements::{shapes::{Background, Rectangle}, Element, text::Text, Frame, containers::Box}, styles::{solid::Solid, PathStyle, only_if::{OnlyIf, OnlyIfOperator}, stroke::{Stroke, DashPattern}, TextStyle, font::{Font, Weight}, color::{ColorRef, Color}, text::{Alignment, Align}}, BaseTextStyles}, templates::TemplateAwareString};
 
     use super::Layout;
 
@@ -25,6 +33,10 @@ mod tests {
         cut 37
         safe 75
         dpi 300
+    }
+    base-text {
+        font weight="light"
+        align "center"
     }
     background {
         solid "white"
@@ -66,6 +78,10 @@ mod tests {
                     safe: Insets::uniform(75),
                     dpi: 300,
                 },
+                base_text: Some(BaseTextStyles { styles: vec![
+                    TextStyle::Font(Font { family: None, weight: Some(Weight::Light), width: None, style: None }),
+                    TextStyle::Align(Align { alignment: Alignment::Center }),
+                ] }),
                 elements: vec![
                     Element::Background(Background {
                         style: vec![
@@ -153,10 +169,10 @@ mod tests {
                                 },
                                 style: vec![
                                     TextStyle::Font(Font {
-                                        family: "Fira Code".to_string(),
-                                        width: Width::Normal,
-                                        weight: Weight::Normal,
-                                        style: "".to_string(),
+                                        family: Some("Fira Code".to_string()),
+                                        width: None,
+                                        weight: None,
+                                        style: None,
                                     }),
                                 ],
                             }),
