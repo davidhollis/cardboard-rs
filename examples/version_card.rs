@@ -13,6 +13,13 @@ geometry {
     cut 37
     safe 75
 }
+base {
+    text {
+        font family="Optima" weight="normal"
+        align "center"
+        size 8 "pt"
+    }
+}
 background {
     solid "white"
 }
@@ -24,17 +31,13 @@ rectangle x=100 y=100 w=625 h=925 {
 }
 text "Hello from {{name}}" {
     frame x=150 y=200 w=525 h=100
-    font family="Optima" weight="black"
+    font weight="black"
     size 11 "pt"
-    align "center"
     foreground "rgb(64, 64, 192)"
 }
 
 text "version {{version}}" {
     frame x=150 y=300 w=525 h=625
-    font family="Optima" weight="normal"
-    size 8 "pt"
-    align "center"
 }
 "###;
 
