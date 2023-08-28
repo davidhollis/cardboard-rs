@@ -4,6 +4,16 @@ geometry {
     cut 37
     safe 75
 }
+base {
+    text {
+        font family="Optima"
+        size 11 "pt"
+        align "left"
+        foreground "black"
+    }
+}
+
+
 background {
     solid "cutzone"
 }
@@ -14,10 +24,8 @@ rectangle x=37 y=37 w=751 h=1051 {
 
 text "{{name}}" {
     frame x=75 y=75 w=675 h=175
-    font family="Optima" weight="black"
-    size 11 "pt"
+    font weight="black"
     align "center"
-    foreground "black"
 }
 
 
@@ -25,10 +33,6 @@ text "{{name}}" {
 
 text "Scaling: Fit" {
     frame x=75 y=252 w=375 h=123
-    font family="Optima"
-    size 11 "pt"
-    align "left"
-    foreground "black"
 }
 
 image "{{picture}}" {
@@ -45,10 +49,6 @@ rectangle x=450 y=175 w=300 h=200 {
 
 text "Scaling: Fill" {
     frame x=75 y=452 w=375 h=123
-    font family="Optima"
-    size 11 "pt"
-    align "left"
-    foreground "black"
 }
 
 image "{{picture}}" {
@@ -65,10 +65,6 @@ rectangle x=450 y=375 w=300 h=200 {
 
 text "Scaling: Stretch" {
     frame x=75 y=652 w=375 h=123
-    font family="Optima"
-    size 11 "pt"
-    align "left"
-    foreground "black"
 }
 
 image "{{picture}}" {
@@ -85,10 +81,6 @@ rectangle x=450 y=575 w=300 h=200 {
 
 text "Scaling: None" {
     frame x=75 y=852 w=375 h=123
-    font family="Optima"
-    size 11 "pt"
-    align "left"
-    foreground "black"
 }
 
 image "{{picture}}" {

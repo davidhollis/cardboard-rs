@@ -4,7 +4,7 @@ use miette::{Diagnostic, IntoDiagnostic};
 use skia_safe::{EncodedImageFormat, PictureRecorder, Rect, Picture, Surface, Image, images, Data};
 use thiserror::Error;
 
-use crate::{data::{project::Project}, config::sheets::{units, layout::Sheet}, layout::Geometry};
+use crate::{data::{project::Project}, config::sheets::{units, layout::Sheet}, layout::model::{geometry::Geometry, styles::text::ComputedTextStyle, BaseStyles}};
 
 use super::Renderer;
 
@@ -61,7 +61,11 @@ impl Renderer for SkiaRenderer {
         let mut canvas = recorder.begin_recording(bounding_rect, None);
 
         // Draw the card
-        let mut render_ctx = drawing::CardRenderContext::new(card, project, layout.geometry.dpi, self);
+        let mut base_text_styles = ComputedTextStyle::default();
+        if let Some(BaseStyles { text: Some(ref style_definitions), .. }) = layout.base {
+            base_text_styles.apply(style_definitions.styles.as_slice());
+        }
+        let mut render_ctx = drawing::CardRenderContext::new(card, project, layout.geometry.dpi, self, base_text_styles);
         render_ctx.draw_elements(
             &mut canvas,
             &layout.elements,

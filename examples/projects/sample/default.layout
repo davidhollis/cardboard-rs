@@ -4,6 +4,15 @@ geometry {
     cut 37
     safe 75
 }
+base {
+    text {
+        font family="Palatino"
+        size 8 "pt"
+        foreground "black"
+    }
+}
+
+
 background {
     solid "cutzone"
 }
@@ -14,33 +23,24 @@ rectangle x=37 y=37 w=751 h=1051 {
 
 text "{{name}}" {
     frame x=75 y=75 w=675 h=200
-    font family="Palatino" weight="black"
+    font weight="black"
     size 11 "pt"
     align "center"
-    foreground "black"
 }
 
 text "{{rules}}" {
     frame x=75 y=275 w=675 h=500
-    font family="Palatino"
-    size 8 "pt"
     align "justify"
-    foreground "black"
 }
 
 text "“{{flavor}}”" {
     frame x=75 y=775 w=675 h=100
-    font family="Palatino" style="italic"
-    size 8 "pt"
+    font style="italic"
     align "right"
-    foreground "black"
     only-if "{{flavor}}"
 }
 
 text "card id: {{id}}" {
     frame x=75 y=875 w=675 h=100
-    font family="Courier New"
-    size 8 "pt"
-    align "left"
-    foreground "black"
+    style "card-id"
 }

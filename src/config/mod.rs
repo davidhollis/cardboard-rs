@@ -1,9 +1,10 @@
 use std::collections::HashMap;
 
-use crate::layout::model::styles::color::Color;
+use crate::layout::model::styles::{color::Color, TextStyle as LayoutTextStyle};
 
 pub mod colors;
 pub mod sheets;
+pub mod styles;
 pub mod util;
 
 #[derive(knuffel::Decode)]
@@ -18,6 +19,8 @@ pub struct RawConfig {
     pub pdf_keywords: Option<String>,
     #[knuffel(children(name="color"))]
     colors: Vec<colors::ColorDefinition>,
+    #[knuffel(children(name="text-style"))]
+    text_styles: Vec<styles::TextStyle>,
     #[knuffel(children(name="sheet-type"))]
     sheet_types: Vec<sheets::SheetType>,
 }
@@ -31,6 +34,16 @@ impl RawConfig {
         }
 
         Ok(color_map)
+    }
+
+    pub fn get_text_styles(&self) -> HashMap<String, Vec<LayoutTextStyle>> {
+        let mut style_map = HashMap::new();
+
+        for text_style in &self.text_styles {
+            style_map.insert(text_style.name.clone(), text_style.styles.clone());
+        }
+
+        style_map
     }
 
     pub fn get_sheet_layouts(&self) -> miette::Result<HashMap<String, sheets::layout::Sheet>> {

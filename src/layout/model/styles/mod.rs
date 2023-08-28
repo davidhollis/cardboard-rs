@@ -12,7 +12,7 @@ pub enum PathStyle {
     OnlyIf(only_if::OnlyIf),
 }
 
-#[derive(knuffel::Decode, PartialEq, Eq, Debug)]
+#[derive(knuffel::Decode, PartialEq, Eq, Debug, Clone)]
 pub enum TextStyle {
     Font(font::Font),
     Size(text::Size),

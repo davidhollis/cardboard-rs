@@ -1,18 +1,18 @@
 use std::{str::FromStr, convert::Infallible};
 
-#[derive(knuffel::Decode, PartialEq, Eq, Debug)]
+#[derive(knuffel::Decode, PartialEq, Eq, Debug, Clone)]
 pub struct Font {
-    #[knuffel(property, default="serif".to_string())]
-    pub family: String,
-    #[knuffel(property, str, default=Weight::Normal)]
-    pub weight: Weight,
-    #[knuffel(property, str, default=Width::Normal)]
-    pub width: Width,
-    #[knuffel(property, default)]
-    pub style: String,
+    #[knuffel(property)]
+    pub family: Option<String>,
+    #[knuffel(property, str)]
+    pub weight: Option<Weight>,
+    #[knuffel(property, str)]
+    pub width: Option<Width>,
+    #[knuffel(property)]
+    pub style: Option<String>,
 }
 
-#[derive(PartialEq, Eq, Debug, Clone)]
+#[derive(PartialEq, Eq, Debug, Clone, Copy)]
 pub enum Width {
     UltraCondensed,
     Condensed,
@@ -40,7 +40,7 @@ impl FromStr for Width {
     }
 }
 
-#[derive(PartialEq, Eq, Debug, Clone)]
+#[derive(PartialEq, Eq, Debug, Clone, Copy)]
 pub enum Weight {
     Thin,
     ExtraLight,

@@ -8,6 +8,8 @@ pub struct Text {
     pub contents: TemplateAwareString,
     #[knuffel(child)]
     pub frame: Frame,
+    #[knuffel(child, unwrap(argument))]
+    pub style: Option<String>,
     #[knuffel(children)]
-    pub style: Vec<TextStyle>,
+    pub inline_styles: Vec<TextStyle>,
 }
