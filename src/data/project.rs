@@ -3,7 +3,7 @@ use std::{collections::HashMap, path::Path, fs};
 use miette::{Diagnostic, IntoDiagnostic};
 use thiserror::Error;
 
-use crate::{layout::model::{Layout, styles::color::Color}, config::{sheets::layout::Sheet, RawConfig}};
+use crate::{layout::model::{Layout, styles::{color::Color, TextStyle}}, config::{sheets::layout::Sheet, RawConfig}};
 
 use super::{globals, card::{Card, self}};
 
@@ -14,6 +14,7 @@ pub struct Project {
     colors: HashMap<String, Color>,
     sheet_layouts: HashMap<String, Sheet>,
     images: HashMap<String, String>,
+    text_styles: HashMap<String, Vec<TextStyle>>,
     pub pdf_metadata: PdfMetadata,
 }
 
@@ -26,6 +27,7 @@ impl Project {
             colors: HashMap::new(),
             sheet_layouts: HashMap::new(),
             images: HashMap::new(),
+            text_styles: HashMap::new(),
             pdf_metadata: PdfMetadata::default(),
         }
     }
@@ -100,11 +102,17 @@ impl Project {
                         let file_contents_bytes = fs::read(&path).into_diagnostic()?;
                         let file_contents_str = std::str::from_utf8(file_contents_bytes.as_slice()).into_diagnostic()?;
                         let config: RawConfig = knuffel::parse(relative_path, file_contents_str)?;
+
                         let new_colors = config.get_colors()?;
                         let new_color_count = new_colors.len();
+                        self.colors.extend(new_colors);
+
+                        let new_text_styles = config.get_text_styles();
+                        let new_text_style_count = new_text_styles.len();
+                        self.text_styles.extend(new_text_styles);
+
                         let new_sheet_layouts = config.get_sheet_layouts()?;
                         let new_sheet_layout_count = new_sheet_layouts.len();
-                        self.colors.extend(new_colors);
                         self.sheet_layouts.extend(new_sheet_layouts);
     
                         self.pdf_metadata.author = config.pdf_author;
@@ -112,7 +120,13 @@ impl Project {
                         self.pdf_metadata.subject = config.pdf_subject;
                         self.pdf_metadata.keywords = config.pdf_keywords;
     
-                        log::info!("Successfully loaded {} colors and {} sheet layouts from file {}", new_color_count, new_sheet_layout_count, relative_path);
+                        log::info!(
+                            "Successfully loaded {colors} colors, {styles} text styles, and {layouts} sheet layouts from file {file}",
+                            colors=new_color_count,
+                            styles=new_text_style_count,
+                            layouts=new_sheet_layout_count,
+                            file=relative_path,
+                        );
                     },
                     image_ext @ ("bmp" | "png" | "jpg" | "jpeg" | "gif") => {
                         let image_name = relative_path.strip_suffix(image_ext).and_then(|p| p.strip_suffix(".")).unwrap_or(stem);
@@ -154,6 +168,10 @@ impl Project {
             .map(|c| c.clone())
             .or_else(||globals::color_named(name))
             .ok_or_else(|| ProjectConfigurationError::InvalidColorName(name.to_string()))
+    }
+
+    pub fn style_set_for(&self, name: &str) -> Option<&[TextStyle]> {
+        self.text_styles.get(name).map(|v| v.as_slice())
     }
 
     pub fn layout_named(&self, name: &str) -> Option<&Layout> {

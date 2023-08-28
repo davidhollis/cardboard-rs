@@ -1,6 +1,6 @@
 use std::{str::FromStr, convert::Infallible};
 
-#[derive(knuffel::Decode, PartialEq, Eq, Debug)]
+#[derive(knuffel::Decode, PartialEq, Eq, Debug, Clone)]
 pub struct Font {
     #[knuffel(property)]
     pub family: Option<String>,

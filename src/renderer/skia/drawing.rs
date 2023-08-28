@@ -1,6 +1,6 @@
 use skia_safe::{Canvas, Paint, Color4f, IRect, PaintStyle, textlayout::{TextStyle as SkTextStyle, FontCollection, ParagraphBuilder, ParagraphStyle}, FontMgr, Rect, ClipOp, Color as SkiaColor, PathEffect, FontStyle, font_style::Slant};
 
-use crate::{layout::model::{elements::{Element, shapes::Rectangle, text::Text, containers::Box, image::{Image, Scale}}, styles::{color::{ColorRef, Color as CardboardColor}, stroke::DashPattern, text::{Foreground, Background as TextBackground, Alignment, FlatTextStyle}, font::{Weight, Width}, PathStyle, stroke::Stroke, solid::Solid}}, data::{card::Card, project::{Project}}};
+use crate::{layout::model::{elements::{Element, shapes::Rectangle, text::Text, containers::Box, image::{Image, Scale}}, styles::{color::{ColorRef, Color as CardboardColor}, stroke::DashPattern, text::{Foreground, Background as TextBackground, Alignment, ComputedTextStyle}, font::{Weight, Width}, PathStyle, stroke::Stroke, solid::Solid}}, data::{card::Card, project::{Project}}};
 
 use super::{SkiaRendererError, SkiaRenderer};
 
@@ -9,11 +9,11 @@ pub struct CardRenderContext<'a> {
     project: &'a Project,
     dpi: usize,
     renderer: &'a mut SkiaRenderer,
-    base_text_styles: FlatTextStyle<'a>,
+    base_text_styles: ComputedTextStyle<'a>,
 }
 
 impl<'a> CardRenderContext<'a> {
-    pub fn new(card: &'a Card, project: &'a Project, dpi: usize, renderer: &'a mut SkiaRenderer, base_text_styles: FlatTextStyle<'a>) -> CardRenderContext<'a> {
+    pub fn new(card: &'a Card, project: &'a Project, dpi: usize, renderer: &'a mut SkiaRenderer, base_text_styles: ComputedTextStyle<'a>) -> CardRenderContext<'a> {
         CardRenderContext { card, project, dpi, renderer, base_text_styles }
     }
 
@@ -133,10 +133,22 @@ impl<'a> CardRenderContext<'a> {
         // TODO(#28): eventually support embedded icons
         // https://github.com/davidhollis/cardboard-rs/issues/28
 
-        let mut text_styles = self.base_text_styles.clone();
-        text_styles.apply(text.style.as_slice());
+        // If this Text element had a style name specified, look up the style
+        // name in the project config and use that as the base text style.
+        // If there was no style name (or if there was and it wasn't found),
+        // use the base styles from the layout.
+        let mut text_styles =
+            text.style.as_ref()
+            .and_then(|style_name| self.project.style_set_for(style_name))
+            .map(|style_directives| {
+                let mut named_style_set = ComputedTextStyle::default();
+                named_style_set.apply(style_directives);
+                named_style_set
+            })
+            .unwrap_or_else(|| self.base_text_styles.clone());
+        text_styles.apply(text.inline_styles.as_slice());
     
-        if let Some(paragraph_style) = self.compute_text_styles(text_styles)? {
+        if let Some(paragraph_style) = self.skia_text_styles(text_styles)? {
             let mut font_collection = FontCollection::new();
             font_collection.set_default_font_manager(FontMgr::new(), None);
             let mut paragraph_builder = ParagraphBuilder::new(&paragraph_style, font_collection);
@@ -232,7 +244,7 @@ impl<'a> CardRenderContext<'a> {
         }
     }
     
-    fn compute_text_styles(&self, styles: FlatTextStyle<'_>) -> Result<Option<ParagraphStyle>, miette::Error> {
+    fn skia_text_styles(&self, styles: ComputedTextStyle<'_>) -> Result<Option<ParagraphStyle>, miette::Error> {
         let mut should_render = true;
         let card_ctx = TryInto::<&handlebars::Context>::try_into(self.card)?;
         

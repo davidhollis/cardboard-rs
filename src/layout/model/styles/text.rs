@@ -18,7 +18,7 @@ pub struct Background {
     pub color: ColorRef,
 }
 
-#[derive(knuffel::Decode, PartialEq, Eq, Debug)]
+#[derive(knuffel::Decode, PartialEq, Eq, Debug, Clone)]
 pub struct Size {
     #[knuffel(argument)]
     pub size: usize,
@@ -56,7 +56,7 @@ impl FromStr for Units {
     }
 }
 
-#[derive(knuffel::Decode, PartialEq, Eq, Debug)]
+#[derive(knuffel::Decode, PartialEq, Eq, Debug, Clone)]
 pub struct Align {
     #[knuffel(argument, str)]
     pub alignment: Alignment,
@@ -85,7 +85,7 @@ impl FromStr for Alignment {
 }
 
 #[derive(Clone)]
-pub struct FlatTextStyle<'a> {
+pub struct ComputedTextStyle<'a> {
     pub foreground: Option<&'a Foreground>,
     pub background: Option<&'a Background>,
     pub size: Option<&'a Size>,
@@ -97,7 +97,7 @@ pub struct FlatTextStyle<'a> {
     pub conditions: Vec<&'a OnlyIf>,
 }
 
-impl<'a> FlatTextStyle<'a> {
+impl<'a> ComputedTextStyle<'a> {
     pub fn apply(&mut self, styles: &'a [TextStyle]) -> () {
         for style in styles {
             match style {
@@ -131,9 +131,9 @@ impl<'a> FlatTextStyle<'a> {
     }
 }
 
-impl<'a> Default for FlatTextStyle<'a> {
+impl<'a> Default for ComputedTextStyle<'a> {
     fn default() -> Self {
-        FlatTextStyle {
+        ComputedTextStyle {
             foreground: None,
             background: None,
             size: None,

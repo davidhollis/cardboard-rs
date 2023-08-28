@@ -9,20 +9,38 @@ pub struct Layout {
     #[knuffel(child)]
     pub geometry: Geometry,
     #[knuffel(child)]
-    pub base_text: Option<BaseTextStyles>,
+    pub base: Option<BaseStyles>,
     #[knuffel(children)]
     pub elements: Vec<Element>,
 }
 
 #[derive(knuffel::Decode, PartialEq, Eq, Debug)]
-pub struct BaseTextStyles {
-    #[knuffel(children)]
-    pub styles: Vec<styles::TextStyle>,
+pub struct BaseStyles {
+    #[knuffel(child)]
+    pub path: Option<base_styles::Path>,
+    #[knuffel(child)]
+    pub text: Option<base_styles::Text>,
+}
+
+pub mod base_styles {
+    use super::styles;
+
+    #[derive(knuffel::Decode, PartialEq, Eq, Debug)]
+    pub struct Path {
+        #[knuffel(children)]
+        pub styles: Vec<styles::PathStyle>,
+    }
+
+    #[derive(knuffel::Decode, PartialEq, Eq, Debug)]
+    pub struct Text {
+        #[knuffel(children)]
+        pub styles: Vec<styles::TextStyle>,
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::layout::{model::{geometry::{Insets, Geometry}, elements::{shapes::{Background, Rectangle}, Element, text::Text, Frame, containers::Box}, styles::{solid::Solid, PathStyle, only_if::{OnlyIf, OnlyIfOperator}, stroke::{Stroke, DashPattern}, TextStyle, font::{Font, Weight}, color::{ColorRef, Color}, text::{Alignment, Align}}, BaseTextStyles}, templates::TemplateAwareString};
+    use crate::layout::{model::{geometry::{Insets, Geometry}, elements::{shapes::{Background, Rectangle}, Element, text::Text, Frame, containers::Box}, styles::{solid::Solid, PathStyle, only_if::{OnlyIf, OnlyIfOperator}, stroke::{Stroke, DashPattern}, TextStyle, font::{Font, Weight}, color::{ColorRef, Color}, text::{Alignment, Align}}, base_styles, BaseStyles}, templates::TemplateAwareString};
 
     use super::Layout;
 
@@ -34,9 +52,11 @@ mod tests {
         safe 75
         dpi 300
     }
-    base-text {
-        font weight="light"
-        align "center"
+    base {
+        text {
+            font weight="light"
+            align "center"
+        }
     }
     background {
         solid "white"
@@ -59,6 +79,7 @@ mod tests {
         }
         text "some text" {
             frame x=10 y=20 w=30 h=40
+            style "rules"
             font family="Fira Code"
         }
     }
@@ -78,10 +99,13 @@ mod tests {
                     safe: Insets::uniform(75),
                     dpi: 300,
                 },
-                base_text: Some(BaseTextStyles { styles: vec![
-                    TextStyle::Font(Font { family: None, weight: Some(Weight::Light), width: None, style: None }),
-                    TextStyle::Align(Align { alignment: Alignment::Center }),
-                ] }),
+                base: Some(BaseStyles {
+                    path: None,
+                    text: Some(base_styles::Text { styles: vec![
+                        TextStyle::Font(Font { family: None, weight: Some(Weight::Light), width: None, style: None }),
+                        TextStyle::Align(Align { alignment: Alignment::Center }),
+                    ] }),
+                }),
                 elements: vec![
                     Element::Background(Background {
                         style: vec![
@@ -126,7 +150,8 @@ mod tests {
                             w: 300,
                             h: 400,
                         },
-                        style: vec![
+                        style: None,
+                        inline_styles: vec![
                             TextStyle::OnlyIf(OnlyIf {
                                 left: TemplateAwareString::new("some {{other}} text".to_string()),
                                 op: Some(OnlyIfOperator::In),
@@ -167,7 +192,8 @@ mod tests {
                                     w: 30,
                                     h: 40,
                                 },
-                                style: vec![
+                                style: Some("rules".to_string()),
+                                inline_styles: vec![
                                     TextStyle::Font(Font {
                                         family: Some("Fira Code".to_string()),
                                         width: None,
