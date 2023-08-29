@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use cardboard::{data::project::Project, renderer::{SkiaRenderer, Renderer}};
+use cardboard::{data::{project::Project, globals}, renderer::{SkiaRenderer, Renderer}};
 use lazy_static::lazy_static;
 use log::LevelFilter;
 use log4rs::{append::console::ConsoleAppender, encode::pattern::PatternEncoder, Config, config::{Appender, Root, Logger}};
@@ -19,12 +19,15 @@ const SAMPLE_DECK: &[(usize, &'static str)] = &[
     (2, "alpha::0002"),
     (3, "alpha_0003"),
     (4, "alpha_0004"),
-    (5, "beta_0003"),
+    (3, "beta_0004"),
+    (2, "beta_0003"),
 ];
 
 fn main() -> miette::Result<()> {
     let verbose = std::env::args().find(|arg| (arg == "-v" || arg == "--verbose")).is_some();
     init_logger(verbose)?;
+
+    globals::init_global_data()?;
 
     let sample_project_dir = format!("{}/examples/projects/sample", BASE_DIR);
     let output_dir = format!("{}/test-renders/sample-project", BASE_DIR);

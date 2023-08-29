@@ -171,7 +171,10 @@ impl Project {
     }
 
     pub fn style_set_for(&self, name: &str) -> Option<&[TextStyle]> {
-        self.text_styles.get(name).map(|v| v.as_slice())
+        self.text_styles
+            .get(name)
+            .map(|v| v.as_slice())
+            .or_else(|| globals::style_named(name))
     }
 
     pub fn layout_named(&self, name: &str) -> Option<&Layout> {
