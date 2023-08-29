@@ -35,6 +35,7 @@ pub fn init_global_data() -> miette::Result<()> {
             }),
         ]);
     }
+    let _ = BUILTIN_STYLES.set(style_map);
 
     Ok(())
 }
