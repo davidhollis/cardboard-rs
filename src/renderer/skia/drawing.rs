@@ -1,6 +1,6 @@
 use skia_safe::{Canvas, Paint, Color4f, IRect, PaintStyle, textlayout::{TextStyle as SkTextStyle, FontCollection, ParagraphBuilder, ParagraphStyle}, FontMgr, Rect, ClipOp, Color as SkiaColor, PathEffect, FontStyle, font_style::Slant};
 
-use crate::{layout::model::{elements::{Element, shapes::Rectangle, text::Text, containers::Box, image::{Image, Scale}}, styles::{color::{ColorRef, Color as CardboardColor}, stroke::DashPattern, text::{Foreground, Background as TextBackground, Alignment, ComputedTextStyle}, font::{Weight, Width}, PathStyle, stroke::Stroke, solid::Solid}}, data::{card::Card, project::{Project}}};
+use crate::{layout::model::{elements::{Element, shapes::Rectangle, text::Text, containers::Box, image::{Image, Scale}}, styles::{color::{ColorRef, Color as CardboardColor}, stroke::DashPattern, text::{Foreground, Background as TextBackground, Alignment, ComputedTextStyle}, font::{Weight, Width}, PathStyle, stroke::Stroke, solid::Solid}}, data::{card::Card, project::{Project}}, format::{self, FormattedTextInstruction}};
 
 use super::{SkiaRendererError, SkiaRenderer};
 
@@ -133,6 +133,8 @@ impl<'a> CardRenderContext<'a> {
         // TODO(#28): eventually support embedded icons
         // https://github.com/davidhollis/cardboard-rs/issues/28
 
+        let mut style_stack: Vec<(&str, ComputedTextStyle<'_>)> = vec![];
+
         // Build the text styles:
         // 1. Start with the layout's base styles
         let mut text_styles = self.base_text_styles.clone();
@@ -145,6 +147,7 @@ impl<'a> CardRenderContext<'a> {
 
         // 3. Then apply the inline styles
         text_styles.apply(text.inline_styles.as_slice());
+        style_stack.push(("", text_styles.clone()));
     
         if let Some(paragraph_style) = self.skia_text_styles(text_styles)? {
             let mut font_collection = FontCollection::new();
@@ -153,7 +156,46 @@ impl<'a> CardRenderContext<'a> {
     
             // Resolve the template and add the text to the builder
             let filled_template = text.contents.render(self.card.try_into()?)?;
-            paragraph_builder.add_text(filled_template.as_str());
+            let formatted = format::parse(&filled_template);
+            for instruction in &formatted {
+                match instruction {
+                    FormattedTextInstruction::AddText(ref text) => {
+                        paragraph_builder.add_text(text);
+                    },
+                    FormattedTextInstruction::PushStyle(ref style_name) => {
+                        if let Some(style_definition) = self.project.style_set_for(&style_name) {
+                            if let Some((_, ref previous_text_style)) = style_stack.last() {
+                                let mut new_text_style = previous_text_style.clone();
+                                new_text_style.apply(style_definition);
+                                if let Some(new_paragraph_style) = self.skia_text_styles(new_text_style.clone())? {
+                                    paragraph_builder.push_style(new_paragraph_style.text_style());
+                                    style_stack.push((style_name, new_text_style));
+                                } else {
+                                    log::warn!("While rendering card {}: style <{}> failed one or more only-if rules, ignoring tag.", self.card.id, style_name);
+                                }
+                            } else {
+                                log::warn!("While rendering card {}: no previous state found whn trying to apply style <{}>. Did you close too many tags?", self.card.id, style_name);
+                            }
+                        } else {
+                            log::warn!("While rendering card {}: no style definition found for tag <{}>", self.card.id, style_name);
+                        }
+                    },
+                    FormattedTextInstruction::PopStyle(ref style_name) => {
+                        if let Some((most_recent_style_name, _)) = style_stack.pop() {
+                            paragraph_builder.pop();
+                            if most_recent_style_name != style_name {
+                                log::warn!("While rendering card {}: encountered </{}>, but the most recent tag was <{}>. Formatting may be incorrect", self.card.id, style_name, most_recent_style_name);
+                            }
+                        } else {
+                            log::warn!("While rendering card {}: encountered </{}>, but there was no open tag to close.", self.card.id, style_name);
+                        }
+                    },
+                    FormattedTextInstruction::InsertPlaceholder(ref symbol_name) => {
+                        log::warn!("While rendering card {}: encountered :{}:, but symbols are not supported yet. Ignoring.", self.card.id, symbol_name);
+                        paragraph_builder.add_text(format!(":{}:", symbol_name));
+                    }
+                }
+            }
     
             // Lay out and draw the paragraph
             let mut paragraph = paragraph_builder.build();
