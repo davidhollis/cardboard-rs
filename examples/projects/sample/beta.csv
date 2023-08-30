@@ -2,4 +2,5 @@ layout,name,rules,picture
 ,"Sample Card B[N]","A normal card from the beta set. This one will be rendered in Palatino, using the default layout. It looks nice enough.",
 fancy,"Sample Card B[F]","A fancy card from the beta set. This one will be rendered in Papyrus, which everyone knows is the fanciest of all typefaces.",
 images,"Image Test Card",,"assets/peppers"
+images,"Placeholder Test Card",,"no-such-image"
 ,"Sample Card B[Fmt]","A normal card, but with a bit of <b><i>wild</i> formatted</b> <i>text</i> in the box. Also has a :symbol: that'll be filled in <red>sometime soon™</red>.",

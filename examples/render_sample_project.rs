@@ -19,7 +19,7 @@ const SAMPLE_DECK: &[(usize, &'static str)] = &[
     (2, "alpha::0002"),
     (3, "alpha_0003"),
     (4, "alpha_0004"),
-    (3, "beta_0004"),
+    (3, "beta_0005"),
     (2, "beta_0003"),
 ];
 

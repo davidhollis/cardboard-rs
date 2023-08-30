@@ -20,22 +20,26 @@ impl SkiaRenderer {
         SkiaRenderer { images: HashMap::new() }
     }
 
-    pub fn load_image(&mut self, image_name: &str, project: &Project) -> miette::Result<Arc<Image>> {
+    pub fn load_image(&mut self, image_name: &str, project: &Project) -> miette::Result<Option<Arc<Image>>> {
         match self.images.get(image_name) {
-            Some(img) => Ok(img.clone()),
+            Some(img) => Ok(Some(img.clone())),
             None => {
                 log::debug!("Encountered image {} for the first time", image_name);
                 let img_path = project
-                    .full_image_path(image_name)
-                    .ok_or(SkiaRendererError::NoSuchImage(image_name.to_string()))?;
-                let image_data = std::fs::read(img_path).into_diagnostic()?;
-                let loaded_image =
-                    images::deferred_from_encoded_data(Data::new_copy(image_data.as_slice()), None)
-                    .ok_or(SkiaRendererError::GraphicsError(format!("failed to decode image from contents of file {}", img_path)))?;
-                log::debug!("Loaded image with size {}x{}", loaded_image.width(), loaded_image.height());
-                let rc_image = Arc::new(loaded_image);
-                self.images.insert(image_name.to_string(), rc_image.clone());
-                Ok(rc_image)
+                    .full_image_path(image_name);
+                match img_path {
+                    Some(img_path) => {
+                        let image_data = std::fs::read(img_path).into_diagnostic()?;
+                        let loaded_image =
+                            images::deferred_from_encoded_data(Data::new_copy(image_data.as_slice()), None)
+                            .ok_or(SkiaRendererError::GraphicsError(format!("failed to decode image from contents of file {}", img_path)))?;
+                        log::debug!("Loaded image with size {}x{}", loaded_image.width(), loaded_image.height());
+                        let rc_image = Arc::new(loaded_image);
+                        self.images.insert(image_name.to_string(), rc_image.clone());
+                        Ok(Some(rc_image))
+                    },
+                    None => Ok(None)
+                }
             }
         }
     }
@@ -165,8 +169,6 @@ impl Renderer for SkiaRenderer {
 pub enum SkiaRendererError {
     #[error("encountered an error while rendering a card: {0}")]
     GraphicsError(String),
-    #[error("no image named {0} was found in the project directory")]
-    NoSuchImage(String),
 }
 
 pub struct SkiaCard<'a> {

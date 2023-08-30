@@ -1,6 +1,6 @@
 use skia_safe::{Canvas, Paint, Color4f, IRect, PaintStyle, textlayout::{TextStyle as SkTextStyle, FontCollection, ParagraphBuilder, ParagraphStyle}, FontMgr, Rect, ClipOp, Color as SkiaColor, PathEffect, FontStyle, font_style::Slant};
 
-use crate::{layout::model::{elements::{Element, shapes::Rectangle, text::Text, containers::Box, image::{Image, Scale}}, styles::{color::{ColorRef, Color as CardboardColor}, stroke::DashPattern, text::{Foreground, Background as TextBackground, Alignment, ComputedTextStyle}, font::{Weight, Width}, PathStyle, stroke::Stroke, solid::Solid}}, data::{card::Card, project::{Project}}, format::{self, FormattedTextInstruction}};
+use crate::{layout::model::{elements::{Element, shapes::Rectangle, text::Text, containers::Box, image::{Image, Scale}, Frame}, styles::{color::{ColorRef, Color as CardboardColor}, stroke::DashPattern, text::{Foreground, Background as TextBackground, Alignment, ComputedTextStyle, Size, Units}, font::{Weight, Width}, PathStyle, stroke::Stroke, solid::Solid}}, data::{card::Card, project::{Project}}, format::{self, FormattedTextInstruction}};
 
 use super::{SkiaRendererError, SkiaRenderer};
 
@@ -48,6 +48,14 @@ impl<'a> CardRenderContext<'a> {
     fn draw_image(&mut self, canvas: &mut Canvas, image_frame: &Image) -> Result<(), miette::Error> {
         let image_name = image_frame.name.render(self.card.try_into()?)?;
         let image = self.renderer.load_image(&image_name, self.project)?;
+
+        let image = match image {
+            Some(image) => image,
+            None => {
+                self.draw_image_placeholder(canvas, &image_frame.frame, &image_name);
+                return Ok(())
+            }
+        };
 
         let horizontal_scale_factor = (image_frame.frame.w as f32)/(image.width() as f32);
         let vertical_scale_factor = (image_frame.frame.h as f32)/(image.height() as f32);
@@ -125,6 +133,59 @@ impl<'a> CardRenderContext<'a> {
             },
         }
         Ok(())
+    }
+    
+    fn draw_image_placeholder(&self, canvas: &mut Canvas, frame: &Frame, image_name: &str) -> () {
+        let mut foreground_paint = Paint::new(Color4f::from(SkiaColor::BLUE), None);
+        foreground_paint.set_style(PaintStyle::Stroke);
+        foreground_paint.set_stroke(true);
+        foreground_paint.set_anti_alias(true);
+        foreground_paint.set_stroke_width(1.);
+        let mut background_paint = Paint::new(Color4f::from(SkiaColor::WHITE), None);
+        background_paint.set_style(PaintStyle::Fill);
+        background_paint.set_stroke(false);
+        background_paint.set_anti_alias(true);
+        let frame_irect = IRect::from_xywh(
+            frame.x as i32,
+            frame.y as i32,
+            frame.w as i32,
+            frame.h as i32,
+        );
+
+        canvas.draw_irect(frame_irect, &background_paint);
+        canvas.draw_irect(frame_irect, &foreground_paint);
+        canvas.draw_line(
+            (frame.x as i32, frame.y as i32),
+            ((frame.x + frame.w) as i32, (frame.y + frame.h) as i32),
+            &foreground_paint,
+        );
+        canvas.draw_line(
+            ((frame.x + frame.w) as i32, frame.y as i32),
+            (frame.x as i32, (frame.y + frame.h) as i32),
+            &foreground_paint,
+        );
+
+        foreground_paint.set_style(PaintStyle::Fill);
+        foreground_paint.set_stroke(false);
+        let mut text_style = SkTextStyle::new();
+        text_style.set_foreground_color(&foreground_paint);
+        text_style.set_background_color(&background_paint);
+        let text_size = Size { size: 6, units: Units::Points }.pixel_size(self.dpi);
+        text_style.set_font_size(text_size);
+        let mut paragraph_style = ParagraphStyle::new();
+        paragraph_style.set_text_style(&text_style);
+        paragraph_style.set_text_align(skia_safe::textlayout::TextAlign::Left);
+        let mut font_collection = FontCollection::new();
+        font_collection.set_default_font_manager(FontMgr::new(), None);
+        let mut paragraph_builder = ParagraphBuilder::new(&paragraph_style, font_collection);
+        paragraph_builder.add_text(image_name);
+        let mut paragraph = paragraph_builder.build();
+        paragraph.layout(frame.w as f32);
+
+        canvas.save();
+        canvas.clip_irect(frame_irect, ClipOp::Intersect);
+        paragraph.paint(canvas, (frame.x as f32, frame.y as f32));
+        canvas.restore();
     }
     
     fn draw_text(&self, canvas: &mut Canvas, text: &Text) -> Result<(), miette::Error> {
