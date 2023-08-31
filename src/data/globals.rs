@@ -5,11 +5,15 @@ use crate::layout::{model::styles::{color::{Color, ColorRef}, TextStyle, font::{
 static BUILTIN_LAYOUTS: OnceLock<HashMap<&'static str, Layout>> = OnceLock::new();
 static BUILTIN_STYLES: OnceLock<HashMap<&'static str, Vec<TextStyle>>> = OnceLock::new();
 
+const DEFAULT_LAYOUT: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/layout/builtin/default.layout"));
+const ICONS_LAYOUT: &str = include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/src/layout/builtin/icons.layout"));
+
 pub fn init_global_data() -> miette::Result<()> {
+    let mut layout_map = HashMap::new();
+    layout_map.insert("default", knuffel::parse("default.layout", DEFAULT_LAYOUT)?);
+    layout_map.insert("icons", knuffel::parse("icons.layout", ICONS_LAYOUT)?);
     // Explicitly ignore double-initialization, as it should be idempotent
-    // TODO(#20): Add some builtin layouts
-    // https://github.com/davidhollis/cardboard-rs/issues/20
-    let _ = BUILTIN_LAYOUTS.set(HashMap::new());
+    let _ = BUILTIN_LAYOUTS.set(layout_map);
 
     let mut style_map = HashMap::new();
     style_map.insert("b", vec![

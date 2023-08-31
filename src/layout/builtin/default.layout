@@ -12,8 +12,7 @@ base {
 }
 
 background {
-    solid "{{bgcolor}}"
-    only-if "{{bgcolor}}"
+    solid "white"
 }
 
 // Art Box
@@ -34,12 +33,13 @@ text "{{tr_text}}" {
 image "{{tr_image}}" {
     frame x=635 y=90 w=100 h=100
     scale "fit"
-    only-if "{{ur_image}}"
+    only-if "{{tr_image}}"
 }
 
 // Type Bar
 text "{{type}}" {
     frame x=195 y=680 w=435 h=50
+    size 8 "pt"
     align "center"
 }
 text "{{ml_text}}" {
@@ -57,7 +57,7 @@ rectangle x=100 y=740 w=625 h=235 {
     stroke 3 "gray"
 }
 text "{{rules}}" {
-    frame x=100 y=740 w=625 h=235
+    frame x=105 y=745 w=615 h=225
     size 8 "pt"
 }
 

@@ -11,8 +11,7 @@ base {
 }
 
 background {
-    solid "{{bgcolor}}"
-    only-if "{{bgcolor}}"
+    solid "white"
 }
 
 // Left Column
@@ -49,32 +48,32 @@ image "{{icon_left6}}" {
 
 // Right Column
 image "{{icon_right1}}" {
-    frame x=75 y=75 w=150 h=150
+    frame x=600 y=75 w=150 h=150
     scale "fit"
     only-if "{{icon_right1}}"
 }
 image "{{icon_right2}}" {
-    frame x=75 y=240 w=150 h=150
+    frame x=600 y=240 w=150 h=150
     scale "fit"
     only-if "{{icon_right2}}"
 }
 image "{{icon_right3}}" {
-    frame x=75 y=405 w=150 h=150
+    frame x=600 y=405 w=150 h=150
     scale "fit"
     only-if "{{icon_right3}}"
 }
 image "{{icon_right4}}" {
-    frame x=75 y=570 w=150 h=150
+    frame x=600 y=570 w=150 h=150
     scale "fit"
     only-if "{{icon_right4}}"
 }
 image "{{icon_right5}}" {
-    frame x=75 y=735 w=150 h=150
+    frame x=600 y=735 w=150 h=150
     scale "fit"
     only-if "{{icon_right5}}"
 }
 image "{{icon_right6}}" {
-    frame x=75 y=900 w=150 h=150
+    frame x=600 y=900 w=150 h=150
     scale "fit"
     only-if "{{icon_right6}}"
 }

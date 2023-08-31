@@ -1,0 +1,3 @@
+layout,title,type,rules,bottom_line,tr_text,ml_text,mr_text,bl_text,br_text,tr_image,ml_image,mr_image,bl_image,br_image
+default,"All the Text Fields","Demo Card — Text","This is a card to demonstrate all the different text fields in the default layout","©20XX Some Author","TR","ML","MR","BL","BR",,,,,
+default,"All the Image Fields","Demo Card — Images","This is a card to demonstrate all the different image fields in the default layout","©20XX Some Author",,,,,,"top right","middle left","middle right","bottom left","bottom right"
