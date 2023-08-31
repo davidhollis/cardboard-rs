@@ -22,6 +22,10 @@ path = "examples/version_card.rs"
 name = "render-sample-project"
 path = "examples/render_sample_project.rs"
 
+[[example]]
+name = "builtin-layouts"
+path = "examples/builtin_layouts.rs"
+
 [dependencies]
 miette = { version = "5.9.0", features = ["fancy"] }
 knuffel = "3.2.0"

@@ -1,0 +1,195 @@
+geometry {
+    width 825
+    height 1125
+    cut 37
+    safe 75
+}
+base {
+    text {
+        foreground "black"
+    }
+}
+
+background {
+    solid "white"
+}
+
+// Left Column
+image "{{icon_left1}}" {
+    frame x=75 y=75 w=150 h=150
+    scale "fit"
+    only-if "{{icon_left1}}"
+}
+image "{{icon_left2}}" {
+    frame x=75 y=240 w=150 h=150
+    scale "fit"
+    only-if "{{icon_left2}}"
+}
+image "{{icon_left3}}" {
+    frame x=75 y=405 w=150 h=150
+    scale "fit"
+    only-if "{{icon_left3}}"
+}
+image "{{icon_left4}}" {
+    frame x=75 y=570 w=150 h=150
+    scale "fit"
+    only-if "{{icon_left4}}"
+}
+image "{{icon_left5}}" {
+    frame x=75 y=735 w=150 h=150
+    scale "fit"
+    only-if "{{icon_left5}}"
+}
+image "{{icon_left6}}" {
+    frame x=75 y=900 w=150 h=150
+    scale "fit"
+    only-if "{{icon_left6}}"
+}
+
+// Right Column
+image "{{icon_right1}}" {
+    frame x=600 y=75 w=150 h=150
+    scale "fit"
+    only-if "{{icon_right1}}"
+}
+image "{{icon_right2}}" {
+    frame x=600 y=240 w=150 h=150
+    scale "fit"
+    only-if "{{icon_right2}}"
+}
+image "{{icon_right3}}" {
+    frame x=600 y=405 w=150 h=150
+    scale "fit"
+    only-if "{{icon_right3}}"
+}
+image "{{icon_right4}}" {
+    frame x=600 y=570 w=150 h=150
+    scale "fit"
+    only-if "{{icon_right4}}"
+}
+image "{{icon_right5}}" {
+    frame x=600 y=735 w=150 h=150
+    scale "fit"
+    only-if "{{icon_right5}}"
+}
+image "{{icon_right6}}" {
+    frame x=600 y=900 w=150 h=150
+    scale "fit"
+    only-if "{{icon_right6}}"
+}
+
+// Title Bar
+text "{{title}}" {
+    frame x=75 y=90 w=675 h=50
+    size 12 "pt"
+    font weight="bold"
+    align "center"
+    only-if "" "=" "{{icon_left1}}{{icon_left2}}{{icon_left3}}{{icon_left4}}{{icon_left5}}{{icon_left6}}{{icon_right1}}{{icon_right2}}{{icon_right3}}{{icon_right4}}{{icon_right5}}{{icon_right6}}"
+}
+text "{{title}}" {
+    frame x=75 y=90 w=510 h=50
+    size 12 "pt"
+    font weight="bold"
+    align "center"
+    only-if "" "=" "{{icon_left1}}{{icon_left2}}{{icon_left3}}{{icon_left4}}{{icon_left5}}{{icon_left6}}"
+    only-if "" "!=" "{{icon_right1}}{{icon_right2}}{{icon_right3}}{{icon_right4}}{{icon_right5}}{{icon_right6}}"
+}
+text "{{title}}" {
+    frame x=240 y=90 w=510 h=50
+    size 12 "pt"
+    font weight="bold"
+    align "center"
+    only-if "" "!=" "{{icon_left1}}{{icon_left2}}{{icon_left3}}{{icon_left4}}{{icon_left5}}{{icon_left6}}"
+    only-if "" "=" "{{icon_right1}}{{icon_right2}}{{icon_right3}}{{icon_right4}}{{icon_right5}}{{icon_right6}}"
+}
+text "{{title}}" {
+    frame x=240 y=90 w=345 h=50
+    size 12 "pt"
+    font weight="bold"
+    align "center"
+    only-if "" "!=" "{{icon_left1}}{{icon_left2}}{{icon_left3}}{{icon_left4}}{{icon_left5}}{{icon_left6}}"
+    only-if "" "!=" "{{icon_right1}}{{icon_right2}}{{icon_right3}}{{icon_right4}}{{icon_right5}}{{icon_right6}}"
+}
+
+// Art
+image "{{art}}" {
+    frame x=75 y=155 w=675 h=475
+    scale "fill"
+    only-if "" "=" "{{icon_left1}}{{icon_left2}}{{icon_left3}}{{icon_left4}}{{icon_left5}}{{icon_left6}}{{icon_right1}}{{icon_right2}}{{icon_right3}}{{icon_right4}}{{icon_right5}}{{icon_right6}}"
+}
+image "{{art}}" {
+    frame x=75 y=155 w=510 h=475
+    scale "fill"
+    only-if "" "=" "{{icon_left1}}{{icon_left2}}{{icon_left3}}{{icon_left4}}{{icon_left5}}{{icon_left6}}"
+    only-if "" "!=" "{{icon_right1}}{{icon_right2}}{{icon_right3}}{{icon_right4}}{{icon_right5}}{{icon_right6}}"
+}
+image "{{art}}" {
+    frame x=240 y=155 w=510 h=475
+    scale "fill"
+    only-if "" "!=" "{{icon_left1}}{{icon_left2}}{{icon_left3}}{{icon_left4}}{{icon_left5}}{{icon_left6}}"
+    only-if "" "=" "{{icon_right1}}{{icon_right2}}{{icon_right3}}{{icon_right4}}{{icon_right5}}{{icon_right6}}"
+}
+image "{{art}}" {
+    frame x=240 y=155 w=345 h=475
+    scale "fill"
+    only-if "" "!=" "{{icon_left1}}{{icon_left2}}{{icon_left3}}{{icon_left4}}{{icon_left5}}{{icon_left6}}"
+    only-if "" "!=" "{{icon_right1}}{{icon_right2}}{{icon_right3}}{{icon_right4}}{{icon_right5}}{{icon_right6}}"
+}
+
+// Rules Box
+text "{{rules}}" {
+    frame x=75 y=645 w=675 h=365
+    size 8 "pt"
+    only-if "" "=" "{{icon_left1}}{{icon_left2}}{{icon_left3}}{{icon_left4}}{{icon_left5}}{{icon_left6}}{{icon_right1}}{{icon_right2}}{{icon_right3}}{{icon_right4}}{{icon_right5}}{{icon_right6}}"
+}
+text "{{rules}}" {
+    frame x=75 y=645 w=510 h=365
+    size 8 "pt"
+    only-if "" "=" "{{icon_left1}}{{icon_left2}}{{icon_left3}}{{icon_left4}}{{icon_left5}}{{icon_left6}}"
+    only-if "" "!=" "{{icon_right1}}{{icon_right2}}{{icon_right3}}{{icon_right4}}{{icon_right5}}{{icon_right6}}"
+}
+text "{{rules}}" {
+    frame x=240 y=645 w=510 h=365
+    size 8 "pt"
+    only-if "" "!=" "{{icon_left1}}{{icon_left2}}{{icon_left3}}{{icon_left4}}{{icon_left5}}{{icon_left6}}"
+    only-if "" "=" "{{icon_right1}}{{icon_right2}}{{icon_right3}}{{icon_right4}}{{icon_right5}}{{icon_right6}}"
+}
+text "{{rules}}" {
+    frame x=240 y=645 w=345 h=365
+    size 8 "pt"
+    only-if "" "!=" "{{icon_left1}}{{icon_left2}}{{icon_left3}}{{icon_left4}}{{icon_left5}}{{icon_left6}}"
+    only-if "" "!=" "{{icon_right1}}{{icon_right2}}{{icon_right3}}{{icon_right4}}{{icon_right5}}{{icon_right6}}"
+}
+
+// Bottom Line
+text "{{bottom_line}}" {
+    frame x=75 y=1025 w=675 h=25
+    size 6 "pt"
+    align "center"
+    foreground "gray"
+    only-if "" "=" "{{icon_left1}}{{icon_left2}}{{icon_left3}}{{icon_left4}}{{icon_left5}}{{icon_left6}}{{icon_right1}}{{icon_right2}}{{icon_right3}}{{icon_right4}}{{icon_right5}}{{icon_right6}}"
+}
+text "{{bottom_line}}" {
+    frame x=75 y=1025 w=510 h=25
+    size 6 "pt"
+    align "center"
+    foreground "gray"
+    only-if "" "=" "{{icon_left1}}{{icon_left2}}{{icon_left3}}{{icon_left4}}{{icon_left5}}{{icon_left6}}"
+    only-if "" "!=" "{{icon_right1}}{{icon_right2}}{{icon_right3}}{{icon_right4}}{{icon_right5}}{{icon_right6}}"
+}
+text "{{bottom_line}}" {
+    frame x=240 y=1025 w=510 h=25
+    size 6 "pt"
+    align "center"
+    foreground "gray"
+    only-if "" "!=" "{{icon_left1}}{{icon_left2}}{{icon_left3}}{{icon_left4}}{{icon_left5}}{{icon_left6}}"
+    only-if "" "=" "{{icon_right1}}{{icon_right2}}{{icon_right3}}{{icon_right4}}{{icon_right5}}{{icon_right6}}"
+}
+text "{{bottom_line}}" {
+    frame x=240 y=1025 w=345 h=25
+    size 6 "pt"
+    align "center"
+    foreground "gray"
+    only-if "" "!=" "{{icon_left1}}{{icon_left2}}{{icon_left3}}{{icon_left4}}{{icon_left5}}{{icon_left6}}"
+    only-if "" "!=" "{{icon_right1}}{{icon_right2}}{{icon_right3}}{{icon_right4}}{{icon_right5}}{{icon_right6}}"
+}

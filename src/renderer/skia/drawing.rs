@@ -1,6 +1,6 @@
 use skia_safe::{Canvas, Paint, Color4f, IRect, PaintStyle, textlayout::{TextStyle as SkTextStyle, FontCollection, ParagraphBuilder, ParagraphStyle}, FontMgr, Rect, ClipOp, Color as SkiaColor, PathEffect, FontStyle, font_style::Slant};
 
-use crate::{layout::model::{elements::{Element, shapes::Rectangle, text::Text, containers::Box, image::{Image, Scale}, Frame}, styles::{color::{ColorRef, Color as CardboardColor}, stroke::DashPattern, text::{Foreground, Background as TextBackground, Alignment, ComputedTextStyle, Size, Units}, font::{Weight, Width}, PathStyle, stroke::Stroke, solid::Solid}}, data::{card::Card, project::{Project}}, format::{self, FormattedTextInstruction}};
+use crate::{layout::model::{elements::{Element, shapes::Rectangle, text::Text, containers::Box, image::{Image, Scale}, Frame}, styles::{color::{ColorRef, Color as CardboardColor}, stroke::DashPattern, text::{Foreground, Background as TextBackground, Alignment, ComputedTextStyle, Size, Units}, font::{Weight, Width}, PathStyle, stroke::Stroke, solid::Solid, ImageStyle}}, data::{card::Card, project::{Project}}, format::{self, FormattedTextInstruction}};
 
 use super::{SkiaRendererError, SkiaRenderer};
 
@@ -46,7 +46,20 @@ impl<'a> CardRenderContext<'a> {
     }
 
     fn draw_image(&mut self, canvas: &mut Canvas, image_frame: &Image) -> Result<(), miette::Error> {
-        let image_name = image_frame.name.render(self.card.try_into()?)?;
+        let mut should_render = true;
+        let card_ctx = TryInto::<&handlebars::Context>::try_into(self.card)?;
+        for image_style in &image_frame.styles {
+            match image_style {
+                ImageStyle::OnlyIf(condition) => {
+                    should_render = should_render && condition.evaluate(card_ctx)?;
+                }
+            }
+        }
+        if !should_render {
+            return Ok(());
+        }
+
+        let image_name = image_frame.name.render(card_ctx)?;
         let image = self.renderer.load_image(&image_name, self.project)?;
 
         let image = match image {

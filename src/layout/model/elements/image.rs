@@ -3,7 +3,7 @@ use std::str::FromStr;
 use miette::Diagnostic;
 use thiserror::Error;
 
-use crate::layout::templates::TemplateAwareString;
+use crate::layout::{templates::TemplateAwareString, model::styles::ImageStyle};
 
 use super::Frame;
 
@@ -15,6 +15,8 @@ pub struct Image {
     pub frame: Frame,
     #[knuffel(child, unwrap(argument, str))]
     pub scale: Scale,
+    #[knuffel(children)]
+    pub styles: Vec<ImageStyle>,
 }
 
 #[derive(PartialEq, Eq, Debug)]

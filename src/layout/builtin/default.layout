@@ -1,0 +1,100 @@
+geometry {
+    width 825
+    height 1125
+    cut 37
+    safe 75
+}
+base {
+    text {
+        size 12 "pt"
+        foreground "black"
+    }
+}
+
+background {
+    solid "white"
+}
+
+// Art Box
+image "{{art}}" {
+    frame x=75 y=150 w=675 h=520
+    scale "fill"
+}
+
+// Title Bar
+text "{{title}}" {
+    frame x=90 y=90 w=540 h=50
+    font weight="bold"
+}
+text "{{tr_text}}" {
+    frame x=635 y=90 w=100 h=50
+    align "right"
+}
+image "{{tr_image}}" {
+    frame x=635 y=90 w=100 h=100
+    scale "fit"
+    only-if "{{tr_image}}"
+}
+
+// Type Bar
+text "{{type}}" {
+    frame x=195 y=680 w=435 h=50
+    size 8 "pt"
+    align "center"
+}
+text "{{ml_text}}" {
+    frame x=90 y=680 w=100 h=50
+    align "left"
+}
+text "{{mr_text}}" {
+    frame x=635 y=680 w=100 h=50
+    align "right"
+}
+
+// Rules Box
+rectangle x=100 y=740 w=625 h=235 {
+    solid "light gray"
+    stroke 3 "gray"
+}
+text "{{rules}}" {
+    frame x=105 y=745 w=615 h=225
+    size 8 "pt"
+}
+
+// Bottom Line
+text "{{bl_text}}" {
+    frame x=90 y=985 w=100 h=50
+    align "left"
+}
+text "{{br_text}}" {
+    frame x=635 y=985 w=100 h=50
+    align "right"
+}
+text "{{bottom_line}}" {
+    frame x=195 y=1010 w=435 h=25
+    align "center"
+    size 6 "pt"
+    foreground "gray"
+}
+
+// Icons
+image "{{ml_image}}" {
+    frame x=90 y=655 w=100 h=100
+    scale "fit"
+    only-if "{{ml_image}}"
+}
+image "{{mr_image}}" {
+    frame x=635 y=655 w=100 h=100
+    scale "fit"
+    only-if "{{mr_image}}"
+}
+image "{{bl_image}}" {
+    frame x=90 y=935 w=100 h=100
+    scale "fit"
+    only-if "{{bl_image}}"
+}
+image "{{br_image}}" {
+    frame x=635 y=935 w=100 h=100
+    scale "fit"
+    only-if "{{br_image}}"
+}

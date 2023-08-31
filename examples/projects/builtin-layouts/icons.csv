@@ -1,0 +1,5 @@
+layout,title,rules,bottom_line,icon_left1,icon_left2,icon_left3,icon_left4,icon_left5,icon_left6,icon_right1,icon_right2,icon_right3,icon_right4,icon_right5,icon_right6
+icons,"Neither Side","This card has no icons at all, so the text should stretch edge to edge.","Demo Card",,,,,,,,,,,,
+icons,"Left Only","This card has a few left icons, so the text should shift to the right to accommodate it.","Demo Card",icon,,icon,icon,,icon,,,,,,
+icons,"Right Only","This card has a few right icons, so the text should shift to the left to accommodate it.","Demo Card",,,,,,,,icon,icon,,,icon
+icons,"Both Sides","This card has a few icons on each side, so the text should compress itself to fit between both rows.","Demo Card",icon,,icon,,icon,,,icon,,icon,,icon
