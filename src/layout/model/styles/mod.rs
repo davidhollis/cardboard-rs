@@ -21,3 +21,8 @@ pub enum TextStyle {
     Background(text::Background),
     OnlyIf(only_if::OnlyIf),
 }
+
+#[derive(knuffel::Decode, PartialEq, Eq, Debug, Clone)]
+pub enum ImageStyle {
+    OnlyIf(only_if::OnlyIf),
+}
