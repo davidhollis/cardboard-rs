@@ -11,7 +11,6 @@ const BASE_DIR: &str = env!("CARGO_MANIFEST_DIR");
 
 lazy_static! {
     static ref NON_IDENTIFIER_SEQUENCE: Regex = Regex::new(r#"[^A-Za-z0-9_]+"#).unwrap();
-    static ref DECKLIST_LINE: Regex = Regex::new(r#"\A(?<quantity>[0-9]+) (?<id>.+)\z"#).unwrap();
 }
 
 const SAMPLE_DECK: &[(usize, &'static str)] = &[

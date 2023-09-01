@@ -6,13 +6,14 @@ use serde::Serialize;
 
 pub struct Card {
     pub id: String,
+    pub set: String,
     fields: HashMap<String, String>,
     handlebars_context: OnceLock<Context>,
 }
 
 impl Card {
-    pub fn new(id: String) -> Card {
-        Card { id, fields: HashMap::new(), handlebars_context: OnceLock::new() }
+    pub fn new(id: String, set: String) -> Card {
+        Card { id, set, fields: HashMap::new(), handlebars_context: OnceLock::new() }
     }
 
     pub fn fields_mut(&mut self) -> &mut HashMap<String, String> {
@@ -116,7 +117,8 @@ pub mod loaders {
                     Some(blank_id) if blank_id == "" => generate_id(idx, &doc_name),
                     // If there's an explicit id, just use that
                     Some(explicit_card_id) => explicit_card_id,
-                }
+                },
+                doc_name.as_ref().map(|s|s.clone()).unwrap_or_default(),
             );
             card.fields_mut().extend(card_hash);
             card

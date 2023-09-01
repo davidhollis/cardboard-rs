@@ -53,7 +53,7 @@ fn main() -> miette::Result<()> {
     test_project.pdf_metadata.title = Some("Test Version Card".to_string());
 
     println!("Setting up test card...");
-    let mut test_card = Card::new("test_card_id".to_string());
+    let mut test_card = Card::new("test_card_id".to_string(), "version".to_string());
     test_card.fields_mut().insert("name".to_string(), NAME.to_string());
     test_card.fields_mut().insert("version".to_string(), VERSION.to_string());
     test_card.fields_mut().insert("layout".to_string(), "test_layout".to_string());

@@ -3,6 +3,7 @@ name = "cardboard"
 version = "0.1.0"
 edition = "2021"
 default-run = "cardboard"
+authors = ["David Hollis <david@hollis.computer>"]
 
 # Build targets
 
@@ -41,3 +42,6 @@ calamine = "0.21.2"
 log = "0.4.20"
 log4rs = "1.2.0"
 chrono = "0.4.26"
+clap = { version = "4.4.2", features = ["derive"] }
+sys-locale = "0.3.1"
+oxilangtag = "0.1.3"

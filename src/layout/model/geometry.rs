@@ -1,6 +1,6 @@
 use knuffel::{ast::{Value, Literal}, decode::Kind, span::Spanned};
 
-#[derive(knuffel::Decode, PartialEq, Eq, Debug)]
+#[derive(knuffel::Decode, PartialEq, Eq, Debug, Clone)]
 pub struct Geometry {
     #[knuffel(child, unwrap(argument))]
     pub width: usize,
@@ -23,7 +23,7 @@ impl Geometry {
     }
 }
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub struct Insets {
     pub top: usize,
     pub right: usize,
