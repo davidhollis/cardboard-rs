@@ -42,9 +42,41 @@ impl Project {
             log::info!("Finished loading project");
             Ok(project)
         } else {
-            Err(ProjectConfigurationError::NotADirectory(
-                format!("{}",project_dir.as_ref().display())
-            ).into())
+            let extension = project_dir.as_ref().extension()
+                .and_then(|p| p.to_str())
+                .unwrap_or_default()
+                .to_ascii_lowercase();
+            match extension.as_str() {
+                "csv" => {
+                    log::debug!("Loading project from single CSV file {}", project_dir.as_ref().to_str().unwrap_or_default());
+                    let mut project = Project::new();
+
+                    let csv_cards = card::loaders::load_csv(&project_dir)?;
+                    for card in csv_cards {
+                        log::debug!("Loaded card \"{}\"", card.id);
+                        project.add_card(card);
+                    }
+
+                    Ok(project)
+                },
+                "xls" | "xlsx" | "xlsm" | "xlsb" | "ods" => {
+                    log::debug!("Loading project from single spreadsheet {}", project_dir.as_ref().to_str().unwrap_or_default());
+                    let mut project = Project::new();
+
+                    let xls_cards = card::loaders::load_excel(&project_dir)?;
+                    for card in xls_cards {
+                        log::debug!("Loaded card \"{}\"", card.id);
+                        project.add_card(card);
+                    }
+
+                    Ok(project)
+                },
+                _ => {
+                    Err(ProjectConfigurationError::NotADirectory(
+                        format!("{}",project_dir.as_ref().display())
+                    ).into())
+                },
+            }
         }
     }
 

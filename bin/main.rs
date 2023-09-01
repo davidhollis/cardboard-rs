@@ -103,7 +103,18 @@ fn main() -> miette::Result<()> {
     match cb.command.unwrap_or_default() {
         Command::Sheet { sheet_type, card_list, output_path } => {
             let output_path = output_path.unwrap_or_else(|| {
-                let default_output_path = project_dir.join("_output");
+                let default_output_path =
+                    if project_dir.is_dir() {
+                        project_dir.join("_output")
+                    } else {
+                        // If the project is just a single spreadsheet, just
+                        // put the pdf next to it.
+                        // Note: panics if the user somehow passes a path to a single spreadsheet that has no parent directory
+                        project_dir
+                            .parent()
+                            .unwrap()
+                            .to_path_buf()
+                    };
                 let stem = match card_list.as_ref().and_then(|cl| cl.file_stem()).and_then(|s| s.to_str()) {
                     Some("-") | None =>
                         sheet_type.as_ref()
@@ -145,7 +156,19 @@ fn main() -> miette::Result<()> {
             log::info!("Successfully wrote pdf {}", output_path.display());
         },
         Command::Singles { sets, cards, output_dir } => {
-            let output_dir = output_dir.unwrap_or(project_dir.join("_output"));
+            let output_dir = output_dir.unwrap_or_else(|| {
+                if project_dir.is_dir() {
+                    project_dir.join("_output")
+                } else {
+                    // If the project is just a single spreadsheet, just
+                    // put the images in an _output directory next to it.
+                    // Note: panics if the user somehow passes a path to a single spreadsheet that has no parent directory
+                    project_dir
+                        .parent()
+                        .unwrap()
+                        .join("_output")
+                }
+            });
             std::fs::create_dir_all(&output_dir).into_diagnostic()?;
             let selected_cards: Box<dyn Iterator<Item = &Card>> =
                 if sets.is_empty() && cards.is_empty() {
