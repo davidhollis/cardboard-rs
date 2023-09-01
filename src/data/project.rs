@@ -57,8 +57,8 @@ impl Project {
                 .ok_or(ProjectConfigurationError::Other(format!("Path {} cannot be rendered into a basename", path.display())))?;
             if path.is_dir() {
                 let basename = path.file_name().and_then(|name| name.to_str()).unwrap_or_default();
-                if basename.starts_with(".") {
-                    log::debug!("Skipping dir {} because it's a dot directory", relative_path);
+                if basename.starts_with(".") || basename == "_output" {
+                    log::debug!("Skipping dir {} because it's a dot or output directory", relative_path);
                 } else {
                     log::debug!("Recursively scanning directory {}", relative_path);
                     self.scan_dir(path)?;
