@@ -11,7 +11,7 @@ use regex::Regex;
 
 lazy_static! {
     static ref NON_IDENTIFIER_SEQUENCE: Regex = Regex::new(r#"[^A-Za-z0-9_]+"#).unwrap();
-    static ref DECKLIST_LINE: Regex = Regex::new(r#"\A([0-9]+) (.+)\z"#).unwrap();
+    static ref DECKLIST_LINE: Regex = Regex::new(r#"\A([0-9]+)\s+(.+)\z"#).unwrap();
 }
 
 
@@ -20,7 +20,7 @@ lazy_static! {
 #[command(author, version, long_about = None)]
 struct Cardboard {
     /// The directory the project should be loaded from (default: the current directory).
-    #[arg(long, short, value_name = "DIR")]
+    #[arg(value_name = "DIR")]
     project_dir: Option<PathBuf>,
 
     /// Show more detailed output.
@@ -28,7 +28,7 @@ struct Cardboard {
     verbose: bool,
 
     #[command(subcommand)]
-    command: Command,
+    command: Option<Command>,
 }
 
 #[derive(Subcommand, Clone)]
@@ -36,11 +36,13 @@ enum Command {
     /// Render a list of cards in a PDF, organized on printable sheets.
     /// 
     /// The PDF is written to the specified path if given, or to
-    /// `<PROJECT_DIR>/_output/<PROJECT_BASENAME>.pdf` if not, where
-    /// PROJECT_BASENAME is the last path component of the project directory.
+    /// `<PROJECT_DIR>/_output/<SOMETHING>.pdf` if not, where SOMETHING is
+    /// derived from the name of the card list file or the sheet layout, or
+    /// just "sheet" if none of the above were given.
     /// 
     /// The cards will be laid out in the same order as they appear in the
-    /// list.
+    /// list. If there is no card list given, every card in the project will be
+    /// included in the PDF, in an arbitrary order.
     Sheet {
         /// The name of the sheet layout.
         #[arg(short, long, value_name = "TYPE")]
@@ -49,7 +51,7 @@ enum Command {
         /// A path to a list of cards to include (.deck format). If the path
         /// is "-", it'll be read from stdin.
         #[arg(short, long, value_name = "PATH")]
-        card_list: PathBuf,
+        card_list: Option<PathBuf>,
 
         /// The path to the finished PDF.
         #[arg(short, long, value_name = "PATH")]
@@ -80,6 +82,12 @@ enum Command {
     }
 }
 
+impl Default for Command {
+    fn default() -> Self {
+        Command::Sheet { sheet_type: None, card_list: None, output_path: None }
+    }
+}
+
 fn main() -> miette::Result<()> {
     let cb = Cardboard::parse();
     init_logger(cb.verbose)?;
@@ -92,16 +100,17 @@ fn main() -> miette::Result<()> {
     let project = Project::load_from_directory(&project_dir)?;
     let mut renderer = SkiaRenderer::new();
 
-    match cb.command {
+    match cb.command.unwrap_or_default() {
         Command::Sheet { sheet_type, card_list, output_path } => {
             let output_path = output_path.unwrap_or_else(|| {
                 let default_output_path = project_dir.join("_output");
-                let stem =
-                    // XXX: if card list is "-" this can go very wrong
-                    card_list.file_stem()
-                        .and_then(|s| s.to_str())
-                        .or(sheet_type.as_ref().map(|st| st.as_str()))
-                        .unwrap_or("sheet");
+                let stem = match card_list.as_ref().and_then(|cl| cl.file_stem()).and_then(|s| s.to_str()) {
+                    Some("-") | None =>
+                        sheet_type.as_ref()
+                            .map(|st| st.as_str())
+                            .unwrap_or("sheet"),
+                    Some(s) => s,
+                };
                 default_output_path.join(format!("{stem}.pdf"))
             });
             output_path.parent().map(std::fs::create_dir_all).unwrap_or(Ok(())).into_diagnostic()?;
@@ -114,8 +123,10 @@ fn main() -> miette::Result<()> {
                 project.sheet_type_named(sheet_name)
                     .ok_or_else(|| miette::miette!("Couldn't find sheet layout named \"{}\"", sheet_name))?;
 
-            // XXX: handle "-" for stdin
-            let card_ids = load_card_list(&card_list)?;
+            let card_ids = match card_list {
+                Some(card_list) => load_card_list(&card_list)?,
+                None => project.all_cards().map(|c| c.id.clone()).collect()
+            };
             let selected_cards = project.all_cards().filter(|c| card_ids.contains(&c.id));
             let mut rendered_cards: HashMap<String, <SkiaRenderer as Renderer>::SingleCard<'_>> = HashMap::new();
 
@@ -166,7 +177,12 @@ fn main() -> miette::Result<()> {
 
 fn load_card_list<P: AsRef<Path>>(card_list_path: P) -> miette::Result<Vec<String>> {
     let mut ids = vec![];
-    let card_list_file = BufReader::new(File::open(card_list_path).into_diagnostic()?);
+    let card_list_file: Box<dyn BufRead> =
+        if card_list_path.as_ref().display().to_string() == "-" {
+            Box::new(std::io::stdin().lock())
+        } else {
+            Box::new(BufReader::new(File::open(card_list_path).into_diagnostic()?))
+        };
     for line in card_list_file.lines() {
         let line = line.into_diagnostic()?;
         let captures = DECKLIST_LINE.captures(&line).map(|c| c.extract());
