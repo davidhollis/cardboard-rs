@@ -38,6 +38,14 @@ impl PageSize {
 
         self.orientation.as_ref().map_or(base_dimenstions, |xf| xf.transform_size(base_dimenstions))
     }
+
+    pub fn letter_landscape() -> PageSize {
+        PageSize { dimensions: PageDimensions::Letter, orientation: Some(PageOrientation::Wide) }
+    }
+
+    pub fn a4_landscape() -> PageSize {
+        PageSize { dimensions: PageDimensions::A4, orientation: Some(PageOrientation::Wide) }
+    }
 }
 
 impl<S> knuffel::Decode<S> for PageSize where S: knuffel::traits::ErrorSpan {

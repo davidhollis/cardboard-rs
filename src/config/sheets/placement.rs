@@ -6,17 +6,17 @@ use super::{layout, units::Units};
 #[derive(knuffel::Decode)]
 pub struct Automatic {
     #[knuffel(child)]
-    crop_lines: Option<automatic::CropLines>,
+    pub crop_lines: Option<automatic::CropLines>,
     #[knuffel(child)]
-    margins: automatic::Margins,
+    pub margins: automatic::Margins,
     #[knuffel(child, default)]
-    gutter: automatic::Gutter,
+    pub gutter: automatic::Gutter,
     #[knuffel(child, unwrap(argument, str, default), default)]
-    align: automatic::Align,
+    pub align: automatic::Align,
 }
 
 impl Automatic {
-    pub(super) fn compile(&self, page: &layout::Dimensions, card: &layout::Dimensions, base_units: &Units) -> (Vec<layout::CardPlacement>, Vec<layout::CropLine>) {
+    pub fn compile(&self, page: &layout::Dimensions, card: &layout::Dimensions, base_units: &Units) -> (Vec<layout::CardPlacement>, Vec<layout::CropLine>) {
         let margins = self.margins.into_points(base_units);
         let gutter = self.gutter.into_points(base_units);
 
@@ -105,7 +105,7 @@ impl Automatic {
     }
 }
 
-mod automatic {
+pub(super) mod automatic {
     use std::{str::FromStr, convert::Infallible};
 
     use knuffel::ast::Value;
@@ -115,12 +115,12 @@ mod automatic {
     use super::PlacementError;
 
     #[derive(knuffel::Decode)]
-    pub(super) struct CropLines {
+    pub struct CropLines {
         #[knuffel(argument, str)]
-        pub(super) length: CropLineLength,
+        pub length: CropLineLength,
     }
 
-    pub(super) enum CropLineLength {
+    pub enum CropLineLength {
         Margin,
         Full,
     }
@@ -137,15 +137,15 @@ mod automatic {
         }
     }
 
-    pub(super) struct Margins {
-        pub(super) top: f32,
-        pub(super) right: f32,
-        pub(super) bottom: f32,
-        pub(super) left: f32,
+    pub struct Margins {
+        pub top: f32,
+        pub right: f32,
+        pub bottom: f32,
+        pub left: f32,
     }
 
     impl Margins {
-        pub(super) fn into_points(&self, base_units: &Units) -> Margins {
+        pub fn into_points(&self, base_units: &Units) -> Margins {
             Margins {
                 top: base_units.convert_to_points(self.top),
                 right: base_units.convert_to_points(self.right),
@@ -200,13 +200,13 @@ mod automatic {
         }
     }
 
-    pub(super) struct Gutter {
-        pub(super) horizontal: f32,
-        pub(super) vertical: f32,
+    pub struct Gutter {
+        pub horizontal: f32,
+        pub vertical: f32,
     }
 
     impl Gutter {
-        pub(super) fn into_points(&self, base_units: &Units) -> Gutter {
+        pub fn into_points(&self, base_units: &Units) -> Gutter {
             Gutter {
                 horizontal: base_units.convert_to_points(self.horizontal),
                 vertical: base_units.convert_to_points(self.vertical),
@@ -246,7 +246,7 @@ mod automatic {
         }
     }
 
-    pub(super) enum Align {
+    pub enum Align {
         Left,
         Center,
         Right,
@@ -281,7 +281,7 @@ pub struct Manual {
 }
 
 impl Manual {
-    pub(super) fn compile(&self, base_units: &Units) -> (Vec<layout::CardPlacement>, Vec<layout::CropLine>) {
+    pub fn compile(&self, base_units: &Units) -> (Vec<layout::CardPlacement>, Vec<layout::CropLine>) {
         (
             self.cards.iter().map(|card| card.compile(base_units)).collect(),
             self.crop_lines.as_ref().map(|lines| lines.compile(base_units)).unwrap_or_default(),
@@ -297,15 +297,15 @@ mod manual {
     use super::PlacementError;
 
     #[derive(knuffel::Decode)]
-    pub(super) struct CropLines {
+    pub struct CropLines {
         #[knuffel(argument)]
-        pub(super) length: Option<f32>,
+        pub length: Option<f32>,
         #[knuffel(children)]
-        pub(super) lines: Vec<Line>,
+        pub lines: Vec<Line>,
     }
 
     impl CropLines {
-        pub(super) fn compile(&self, base_units: &Units) -> Vec<layout::CropLine> {
+        pub fn compile(&self, base_units: &Units) -> Vec<layout::CropLine> {
             self.lines.iter().map(|line| match line {
                 Line::Horizontal(offset, length) => layout::CropLine {
                     orientation: layout::CropLineOrientation::Horizontal,
@@ -322,25 +322,25 @@ mod manual {
     }
 
     #[derive(knuffel::Decode)]
-    pub(super) enum Line {
+    pub enum Line {
         Horizontal(#[knuffel(property(name="y"))] f32, #[knuffel(property(name="length"))] Option<f32>),
         Vertical(#[knuffel(property(name="x"))] f32, #[knuffel(property(name="length"))] Option<f32>),
     }
 
     #[derive(knuffel::Decode)]
-    pub(super) struct Card {
+    pub struct Card {
         #[knuffel(property)]
-        pub(super) x: f32,
+        pub x: f32,
         #[knuffel(property)]
-        pub(super) y: f32,
+        pub y: f32,
         #[knuffel(child, unwrap(argument))]
-        pub(super) rotate: Option<f32>,
+        pub rotate: Option<f32>,
         #[knuffel(child, unwrap(argument, str))]
-        pub(super) flip: Option<Axis>,
+        pub flip: Option<Axis>,
     }
 
     impl Card {
-        pub(super) fn compile(&self, base_units: &Units) -> CardPlacement {
+        pub fn compile(&self, base_units: &Units) -> CardPlacement {
             CardPlacement {
                 x: base_units.convert_to_points(self.x),
                 y: base_units.convert_to_points(self.y),
@@ -354,7 +354,7 @@ mod manual {
         }
     }
 
-    pub(super) enum Axis {
+    pub enum Axis {
         Horizontal,
         Vertical,
     }

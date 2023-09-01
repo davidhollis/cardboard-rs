@@ -1,7 +1,7 @@
 geometry {
     width 825
     height 1125
-    cut 37
+    cut 38
     safe 75
 }
 base {

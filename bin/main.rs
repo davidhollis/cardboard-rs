@@ -1,6 +1,6 @@
 use std::{path::{PathBuf, Path}, collections::HashMap, io::{BufReader, BufRead}, fs::File, iter::{repeat}};
 
-use cardboard::{data::{globals, project::Project, card::Card}, renderer::{SkiaRenderer, Renderer}};
+use cardboard::{data::{globals, project::Project, card::Card}, renderer::{SkiaRenderer, Renderer}, config::sheets::SheetType};
 use clap::{Parser, Subcommand};
 use lazy_static::lazy_static;
 use log::LevelFilter;
@@ -126,20 +126,26 @@ fn main() -> miette::Result<()> {
             });
             output_path.parent().map(std::fs::create_dir_all).unwrap_or(Ok(())).into_diagnostic()?;
 
-            let sheet_name =
-                sheet_type.as_ref()
-                    .map(|s| s.as_str())
-                    .unwrap_or("default");
-            let sheet =
-                project.sheet_type_named(sheet_name)
-                    .ok_or_else(|| miette::miette!("Couldn't find sheet layout named \"{}\"", sheet_name))?;
-
             let card_ids = match card_list {
                 Some(card_list) => load_card_list(&card_list)?,
                 None => project.all_cards().map(|c| c.id.clone()).collect()
             };
-            let selected_cards = project.all_cards().filter(|c| card_ids.contains(&c.id));
+            let mut selected_cards = project.all_cards().filter(|c| card_ids.contains(&c.id)).peekable();
             let mut rendered_cards: HashMap<String, <SkiaRenderer as Renderer>::SingleCard<'_>> = HashMap::new();
+
+            let card_geometry = match selected_cards.peek() {
+                Some(card) => project.layout_for_card(card)?.geometry.clone(),
+                None => {
+                    log::warn!("No cards were selected for printing, so we'll exit without producing an empty PDF.");
+                    return Ok(())
+                }
+            };
+            let default_sheet = SheetType::sythesize_for(card_geometry).compile()?;
+            let sheet_name =
+                sheet_type.as_ref()
+                    .map(|s| s.as_str())
+                    .unwrap_or("default");
+            let sheet = project.sheet_type_named(sheet_name).unwrap_or(&default_sheet);
 
             for card in selected_cards {
                 log::info!("Rendering card \"{}\"", card.id);
@@ -150,7 +156,7 @@ fn main() -> miette::Result<()> {
             renderer.write_deck_pdf(
                 card_ids.iter().flat_map(|id| rendered_cards.get(id).into_iter()),
                 &output_path,
-                sheet
+                sheet,
             )?;
 
             log::info!("Successfully wrote pdf {}", output_path.display());
